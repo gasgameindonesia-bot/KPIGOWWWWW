@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { KPI, User } from '../../types';
+import type { KPI, User, Goal } from '../../types';
 import { Card } from '../ui/Card';
 import { KpiProgressChart } from '../charts/KpiProgressChart';
 import { ProgressBar } from '../ui/ProgressBar';
@@ -7,6 +7,7 @@ import { ProgressBar } from '../ui/ProgressBar';
 interface DashboardProps {
   kpis: KPI[];
   users: User[];
+  goals: Goal[];
 }
 
 const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
@@ -29,7 +30,7 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
           <p className="text-sm text-light-text">{currentMonthName} Progress</p>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h3>
         </div>
-        {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" />}
+        {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />}
       </div>
       <div className="mt-4 flex-grow">
         <div className="flex justify-between items-end">
@@ -46,8 +47,47 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
   );
 };
 
+interface ManagerAchievement {
+  manager: User;
+  totalKpisManaged: number;
+  teamSize: number;
+  averageProgress: number;
+}
 
-export const Dashboard: React.FC<DashboardProps> = ({ kpis, users }) => {
+const ManagerCard: React.FC<{ achievement: ManagerAchievement }> = ({ achievement }) => {
+  const { manager, teamSize, totalKpisManaged, averageProgress } = achievement;
+  return (
+    <Card>
+      <div className="flex items-center mb-4">
+        <img src={manager.avatar} alt={manager.name} className="w-16 h-16 rounded-full mr-4 object-cover" />
+        <div>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-dark-text">{manager.name}</h3>
+          <p className="text-sm text-light-text">{manager.division}</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600 dark:text-gray-400">KPIs Managed</span>
+          <span className="font-semibold text-gray-800 dark:text-dark-text">{totalKpisManaged}</span>
+        </div>
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Team Size</span>
+          <span className="font-semibold text-gray-800 dark:text-dark-text">{teamSize}</span>
+        </div>
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-600 dark:text-gray-400">Avg. Progress (This Month)</span>
+            <span className="font-semibold text-gray-800 dark:text-dark-text">{averageProgress.toFixed(0)}%</span>
+          </div>
+          <ProgressBar progress={averageProgress} />
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+
+export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
     const totalKpis = kpis.length;
     const { onTrackKpis, overallProgress } = useMemo(() => {
         const now = new Date();
@@ -55,23 +95,74 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users }) => {
         const currentYear = now.getFullYear();
         let onTrackCount = 0;
         let totalProgress = 0;
+        let kpisWithProgressCount = 0;
 
         kpis.forEach(kpi => {
             const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
-            if (monthData) {
-                const progress = monthData.target > 0 ? (monthData.actual / monthData.target) : 0;
-                if (progress >= 0.75) {
+            if (monthData && monthData.target > 0) {
+                const progress = (monthData.actual / monthData.target);
+                if (progress >= 0.75) { // Assuming "on track" is 75% or more of the target
                     onTrackCount++;
                 }
                 totalProgress += progress;
+                kpisWithProgressCount++;
             }
         });
         
         return {
             onTrackKpis: onTrackCount,
-            overallProgress: totalKpis > 0 ? (totalProgress / totalKpis) * 100 : 0,
+            overallProgress: kpisWithProgressCount > 0 ? (totalProgress / kpisWithProgressCount) * 100 : 0,
         };
     }, [kpis]);
+    
+    const managerAchievements = useMemo(() => {
+        const managerIds = [...new Set(goals.map(goal => goal.managerId))];
+
+        return managerIds.map(managerId => {
+            const manager = users.find(u => u.id === managerId);
+            if (!manager) return null;
+
+            const managerGoals = goals.filter(g => g.managerId === managerId);
+            
+            const staffIds = new Set<string>();
+            managerGoals.forEach(g => {
+                g.staffIds.forEach(id => staffIds.add(id));
+            });
+            const teamSize = staffIds.size;
+            
+            const managerGoalIds = managerGoals.map(g => g.id);
+            const managerKpis = kpis.filter(k => managerGoalIds.includes(k.goalId));
+            const totalKpisManaged = managerKpis.length;
+            
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1;
+            const currentYear = now.getFullYear();
+            
+            let averageProgress = 0;
+            const kpisWithProgressThisMonth = managerKpis.filter(kpi => {
+                const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
+                return monthData && monthData.target > 0;
+            });
+
+            if (kpisWithProgressThisMonth.length > 0) {
+                const sumOfProgress = kpisWithProgressThisMonth.reduce((acc, kpi) => {
+                    const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
+                    if (monthData && monthData.target > 0) {
+                        return acc + (monthData.actual / monthData.target) * 100;
+                    }
+                    return acc;
+                }, 0);
+                averageProgress = sumOfProgress / kpisWithProgressThisMonth.length;
+            }
+
+            return {
+                manager,
+                teamSize,
+                totalKpisManaged,
+                averageProgress,
+            };
+        }).filter((a): a is ManagerAchievement => a !== null);
+    }, [goals, kpis, users]);
 
     const mainKpi = kpis.find(k => k.id === 'kpi-1');
 
@@ -101,13 +192,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users }) => {
         </Card>
       </div>
       
-      <div>
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text mb-4">Your KPIs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {kpis.map(kpi => {
                 const owner = users.find(u => u.id === kpi.ownerId);
                 return <KpiCard key={kpi.id} kpi={kpi} user={owner} />;
             })}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text mb-4">Manager Achievements</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {managerAchievements.map(achievement => (
+                <ManagerCard key={achievement.manager.id} achievement={achievement} />
+            ))}
         </div>
       </div>
     </div>

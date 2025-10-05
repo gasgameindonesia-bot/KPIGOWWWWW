@@ -74,7 +74,7 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (activePage) {
       case NavigationItem.Dashboard:
-        return <Dashboard kpis={kpis} users={users} />;
+        return <Dashboard kpis={kpis} users={users} goals={goals} />;
       case NavigationItem.KPIs:
         return <KpiManagement goals={goals} kpis={kpis} users={users} setGoals={setGoals} setKpis={setKpis} onLogProgress={handleLogProgress} />;
       case NavigationItem.Team:
@@ -82,7 +82,7 @@ const App: React.FC = () => {
       case NavigationItem.Settings:
         return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} kpis={kpis} setKpis={setKpis} />;
       default:
-        return <Dashboard kpis={kpis} users={users} />;
+        return <Dashboard kpis={kpis} users={users} goals={goals} />;
     }
   };
 
