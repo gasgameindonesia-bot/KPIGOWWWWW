@@ -3,11 +3,24 @@ export enum NavigationItem {
     KPIs = 'KPIs',
     Team = 'Team',
     Settings = 'Settings',
+    Pricing = 'Pricing',
 }
 
 export enum UserRole {
     SuperAdmin = 'Super Admin',
     TeamMember = 'Team Member',
+}
+
+export type SubscriptionStatus = 'trialing' | 'active' | 'expired' | 'canceled';
+
+export interface Company {
+    id: string;
+    name: string;
+    subdomain: string;
+    ownerId: string;
+    subscriptionStatus: SubscriptionStatus;
+    trialEndsAt: string; // ISO 8601 date string
+    createdAt: string; // ISO 8601 date string
 }
 
 export interface User {
@@ -18,6 +31,7 @@ export interface User {
     avatar: string;
     jobTitle: string;
     division: string;
+    companyId: string;
 }
 
 export interface Goal {

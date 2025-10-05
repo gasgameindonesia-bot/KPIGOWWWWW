@@ -11,9 +11,15 @@ import { mockUsers, mockGoals, mockKpis } from './data/mockData';
 import { NavigationItem } from './types';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useAuth } from './hooks/useAuth';
+import { AuthPage } from './components/pages/AuthPage';
+import { Paywall } from './components/ui/Paywall';
+import { PricingPage } from './components/pages/PricingPage';
 
 
 const App: React.FC = () => {
+  const { user, company, subscriptionStatus, login, logout, signUp } = useAuth();
+
   const [activePage, setActivePage] = useState<NavigationItem>(() => {
     const hash = window.location.hash.replace('#/', '');
     const page = Object.values(NavigationItem).find(item => item.toLowerCase() === hash.toLowerCase());
@@ -27,7 +33,7 @@ const App: React.FC = () => {
   const [kpis, setKpis] = useState<KPI[]>(mockKpis);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   
-  const currentUser = useMemo(() => users.find(u => u.role === 'Super Admin'), [users]);
+  const currentUser = useMemo(() => user ? users.find(u => u.id === user.id) : undefined, [user, users]);
 
   useEffect(() => {
     window.location.hash = `/${activePage}`;
@@ -133,6 +139,8 @@ const App: React.FC = () => {
         return <Team users={users} setUsers={setUsers} />;
       case NavigationItem.Settings:
         return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} kpis={kpis} onUpdateKpi={handleUpdateKpi} />;
+      case NavigationItem.Pricing:
+        return <PricingPage />;
       default:
         return <Dashboard kpis={kpis} users={users} goals={goals} />;
     }
@@ -148,6 +156,9 @@ const App: React.FC = () => {
     }
   };
 
+  if (!user || !company) {
+    return <AuthPage onLogin={login} onSignUp={signUp} />;
+  }
 
   return (
     <div className={`${theme}`}>
@@ -160,13 +171,17 @@ const App: React.FC = () => {
               users={users}
               onMarkAsRead={handleMarkAsRead}
               onClearNotifications={handleClearNotifications}
+              onLogout={logout}
             />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 lg:p-12">
-            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={goals} strategy={verticalListSortingStrategy}>
-                {renderPage()}
-                </SortableContext>
-            </DndContext>
+            <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 lg:p-12 relative">
+            {subscriptionStatus === 'expired' && <Paywall onUpgrade={() => setActivePage(NavigationItem.Pricing)} />}
+            <div className={subscriptionStatus === 'expired' ? 'blur-sm pointer-events-none' : ''}>
+              <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={goals} strategy={verticalListSortingStrategy}>
+                  {renderPage()}
+                  </SortableContext>
+              </DndContext>
+            </div>
             </main>
         </div>
         </div>

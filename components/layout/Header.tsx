@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Notification, User } from '../../types';
+import { Button } from '../ui/Button';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -7,6 +8,7 @@ interface HeaderProps {
   users: User[];
   onMarkAsRead: (id: string) => void;
   onClearNotifications: () => void;
+  onLogout: () => void;
 }
 
 const timeSince = (date: Date): string => {
@@ -24,7 +26,7 @@ const timeSince = (date: Date): string => {
   return "Just now";
 };
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, notifications, users, onMarkAsRead, onClearNotifications }) => {
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, notifications, users, onMarkAsRead, onClearNotifications, onLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +114,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, notifications, 
               </div>
             )}
           </div>
+           <Button variant="outline" size="sm" onClick={onLogout}>Logout</Button>
         </div>
       </div>
     </header>
