@@ -5,10 +5,14 @@ import { Card } from '../ui/Card';
 
 interface UserProfileViewProps {
   user: User;
+  onClick: () => void;
 }
 
-export const UserProfileView: React.FC<UserProfileViewProps> = ({ user }) => (
-  <Card className="text-center flex flex-col items-center">
+export const UserProfileView: React.FC<UserProfileViewProps> = ({ user, onClick }) => (
+  <Card 
+    onClick={onClick}
+    className="text-center flex flex-col items-center cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1"
+  >
     <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-full mb-4 shadow-lg" />
     <h3 className="text-lg font-bold text-gray-800 dark:text-dark-text">{user.name}</h3>
     <p className="text-light-text text-sm">{user.email}</p>

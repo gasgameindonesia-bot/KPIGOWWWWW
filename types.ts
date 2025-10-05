@@ -40,8 +40,8 @@ export enum KpiFrequency {
 export interface MonthlyProgress {
   year: number;
   month: number; // 1-12 for Jan-Dec
-  target: number;
   actual: number;
+  target: number;
   notes?: string;
 }
 
@@ -55,4 +55,12 @@ export interface KPI {
     monthlyProgress: MonthlyProgress[];
     progressBarColor?: string;
     weight?: number;
+}
+
+export interface Notification {
+  id: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  actorId: string;
 }

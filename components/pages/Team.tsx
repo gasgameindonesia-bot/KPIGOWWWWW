@@ -4,6 +4,7 @@ import { UserRole } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { UserProfileView } from './UserProfileView';
+import { EditUserModal } from './EditUserModal';
 
 interface TeamProps {
   users: User[];
@@ -12,6 +13,21 @@ interface TeamProps {
 
 export const Team: React.FC<TeamProps> = ({ users, setUsers }) => {
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedUser(null);
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+    setSelectedUser(null);
+  };
+
 
   return (
     <div>
@@ -21,7 +37,7 @@ export const Team: React.FC<TeamProps> = ({ users, setUsers }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {users.map(user => <UserProfileView key={user.id} user={user} />)}
+        {users.map(user => <UserProfileView key={user.id} user={user} onClick={() => handleUserClick(user)} />)}
       </div>
 
       <Modal isOpen={isInviteModalOpen} onClose={() => setInviteModalOpen(false)} title="Invite New Team Member">
@@ -52,6 +68,13 @@ export const Team: React.FC<TeamProps> = ({ users, setUsers }) => {
           </div>
         </form>
       </Modal>
+
+      <EditUserModal
+        isOpen={!!selectedUser}
+        onClose={handleCloseModal}
+        user={selectedUser}
+        onUpdateUser={handleUpdateUser}
+      />
     </div>
   );
 };

@@ -33,13 +33,19 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
         {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />}
       </div>
       <div className="mt-4 flex-grow">
-        <div className="flex justify-between items-end">
-          <p className="text-2xl font-bold text-primary">
-            {kpi.unit}{currentValue.toLocaleString()}
-          </p>
-          <p className="text-sm text-light-text">
-            Target: {kpi.unit}{targetValue.toLocaleString()}
-          </p>
+        <div className="flex justify-between items-baseline">
+            <div>
+                <span className="text-sm text-light-text">Actual</span>
+                <p className="text-2xl font-bold text-primary">
+                    {kpi.unit}{currentValue.toLocaleString()}
+                </p>
+            </div>
+            <div className="text-right">
+                <span className="text-sm text-light-text">Target</span>
+                <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                    {kpi.unit}{targetValue.toLocaleString()}
+                </p>
+            </div>
         </div>
         <ProgressBar progress={progress} className="mt-2" customColor={kpi.progressBarColor} />
       </div>
@@ -99,8 +105,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
 
         kpis.forEach(kpi => {
             const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
-            if (monthData && monthData.target > 0) {
-                const progress = (monthData.actual / monthData.target);
+            const target = monthData?.target ?? 0;
+            if (monthData && target > 0) {
+                const progress = (monthData.actual / target);
                 if (progress >= 0.75) { // Assuming "on track" is 75% or more of the target
                     onTrackCount++;
                 }
@@ -191,7 +198,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card className="lg:col-span-2">
             <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">Monthly Sales Revenue</h2>
-            {mainKpi && <KpiProgressChart progress={mainKpi.monthlyProgress} unit={mainKpi.unit}/>}
+            {mainKpi && <KpiProgressChart progress={mainKpi.monthlyProgress} unit={mainKpi.unit} />}
         </Card>
       </div>
       

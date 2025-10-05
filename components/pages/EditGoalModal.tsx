@@ -8,11 +8,11 @@ interface EditGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   goal: Goal | null;
-  setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+  onUpdateGoal: (goal: Goal) => void;
   users: User[];
 }
 
-export const EditGoalModal: FC<EditGoalModalProps> = ({ isOpen, onClose, goal, setGoals, users }) => {
+export const EditGoalModal: FC<EditGoalModalProps> = ({ isOpen, onClose, goal, onUpdateGoal, users }) => {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedManagerId, setEditedManagerId] = useState('');
@@ -39,19 +39,13 @@ export const EditGoalModal: FC<EditGoalModalProps> = ({ isOpen, onClose, goal, s
     e.preventDefault();
     if (!goal) return;
 
-    setGoals(prevGoals =>
-      prevGoals.map(g =>
-        g.id === goal.id
-          ? { 
-              ...g, 
-              title: editedTitle, 
-              description: editedDescription,
-              managerId: editedManagerId,
-              staffIds: editedStaffIds
-            }
-          : g
-      )
-    );
+    onUpdateGoal({ 
+      ...goal, 
+      title: editedTitle, 
+      description: editedDescription,
+      managerId: editedManagerId,
+      staffIds: editedStaffIds
+    });
     onClose();
   };
 

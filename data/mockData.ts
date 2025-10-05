@@ -1,4 +1,4 @@
-import type { User, Goal, KPI } from '../types';
+import type { User, Goal, KPI, MonthlyProgress } from '../types';
 import { UserRole, KpiFrequency } from '../types';
 
 export const mockUsers: User[] = [
@@ -16,19 +16,34 @@ export const mockGoals: Goal[] = [
 
 const currentYear = new Date().getFullYear();
 
+const generateFullYearProgress = (targets: { [month: number]: { actual: number, target: number } }): MonthlyProgress[] => {
+    return Array.from({ length: 12 }, (_, i) => {
+        const month = i + 1;
+        const data = targets[month];
+        return {
+            year: currentYear,
+            month,
+            actual: data?.actual ?? 0,
+            target: data?.target ?? 0,
+        };
+    });
+};
+
+
 export const mockKpis: KPI[] = [
     { 
       id: 'kpi-1', 
       goalId: 'goal-1', 
       title: 'New Sales Revenue', 
-      unit: '$', 
+      unit: '$',
       frequency: KpiFrequency.Monthly, 
       ownerId: 'user-2',
-      monthlyProgress: [
-        { year: currentYear, month: 7, target: 167000, actual: 120000 },
-        { year: currentYear, month: 8, target: 167000, actual: 155000 },
-        { year: currentYear, month: 9, target: 167000, actual: 100000 },
-      ],
+      monthlyProgress: generateFullYearProgress({
+        7: { actual: 120000, target: 160000 },
+        8: { actual: 155000, target: 165000 },
+        9: { actual: 100000, target: 170000 },
+        10: { actual: 0, target: 175000 },
+      }),
       progressBarColor: '#3498db',
       weight: 30,
     },
@@ -36,28 +51,27 @@ export const mockKpis: KPI[] = [
       id: 'kpi-2', 
       goalId: 'goal-1', 
       title: 'Upsell/Cross-sell Revenue', 
-      unit: '$', 
+      unit: '$',
       frequency: KpiFrequency.Monthly, 
       ownerId: 'user-3',
-      monthlyProgress: [
-        { year: currentYear, month: 7, target: 50000, actual: 40000 },
-        { year: currentYear, month: 8, target: 50000, actual: 55000 },
-        { year: currentYear, month: 9, target: 50000, actual: 15000 },
-      ],
+      monthlyProgress: generateFullYearProgress({
+        7: { actual: 40000, target: 50000 },
+        8: { actual: 55000, target: 50000 },
+        9: { actual: 15000, target: 55000 },
+        10: { actual: 0, target: 55000 },
+      }),
       weight: 70,
     },
-    // FIX: Removed `targetValue` and `currentValue` as they are not properties of the KPI type.
-    // The data is correctly represented within the `monthlyProgress` array.
     { 
       id: 'kpi-3', 
       goalId: 'goal-2', 
       title: 'Customer Support Tickets Resolved', 
-      unit: 'tickets', 
+      unit: 'tickets',
       frequency: KpiFrequency.Weekly, 
       ownerId: 'user-4',
-      monthlyProgress: [
-        { year: currentYear, month: 9, target: 500, actual: 480 },
-      ],
+      monthlyProgress: generateFullYearProgress({
+        9: { actual: 480, target: 500 },
+      }),
       progressBarColor: '#9b59b6',
       weight: 60,
     },
@@ -65,24 +79,24 @@ export const mockKpis: KPI[] = [
       id: 'kpi-4', 
       goalId: 'goal-2', 
       title: 'Average Response Time', 
-      unit: 'hours', 
+      unit: 'hours',
       frequency: KpiFrequency.Daily, 
       ownerId: 'user-4',
-      monthlyProgress: [
-        { year: currentYear, month: 9, target: 4, actual: 5 },
-      ],
+      monthlyProgress: generateFullYearProgress({
+        9: { actual: 5, target: 4 },
+      }),
       weight: 40,
     },
     { 
       id: 'kpi-5', 
       goalId: 'goal-3', 
       title: 'New International Leads', 
-      unit: 'leads', 
+      unit: 'leads',
       frequency: KpiFrequency.Weekly, 
       ownerId: 'user-2',
-      monthlyProgress: [
-        { year: currentYear, month: 9, target: 1000, actual: 650 },
-      ],
+      monthlyProgress: generateFullYearProgress({
+        9: { actual: 650, target: 1000 },
+      }),
       weight: 100,
     },
 ];

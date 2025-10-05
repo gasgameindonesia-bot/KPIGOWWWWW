@@ -10,10 +10,10 @@ interface SettingsProps {
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
     kpis: KPI[];
-    setKpis: React.Dispatch<React.SetStateAction<KPI[]>>;
+    onUpdateKpi: (kpi: KPI, actorId?: string) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme, kpis, setKpis }) => {
+export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme, kpis, onUpdateKpi }) => {
     const [profileData, setProfileData] = useState({ 
         name: '', 
         email: '', 
@@ -61,11 +61,10 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
     };
 
     const handleColorChange = (kpiId: string, color: string) => {
-        setKpis(prevKpis =>
-            prevKpis.map(kpi =>
-                kpi.id === kpiId ? { ...kpi, progressBarColor: color } : kpi
-            )
-        );
+        const kpiToUpdate = kpis.find(k => k.id === kpiId);
+        if (kpiToUpdate && currentUser) {
+            onUpdateKpi({ ...kpiToUpdate, progressBarColor: color }, currentUser.id);
+        }
     };
     
     if (!currentUser) {
