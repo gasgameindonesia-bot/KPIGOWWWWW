@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { Dashboard } from './components/pages/Dashboard';
@@ -13,8 +13,14 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<NavigationItem>(NavigationItem.Dashboard);
+  const [activePage, setActivePage] = useState<NavigationItem>(() => {
+    // Simple router based on hash
+    const hash = window.location.hash.replace('#/', '');
+    const page = Object.values(NavigationItem).find(item => item.toLowerCase() === hash.toLowerCase());
+    return page || NavigationItem.Dashboard;
+  });
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // --- Mock Data State ---
   const [users, setUsers] = useState<User[]>(mockUsers);
@@ -24,8 +30,17 @@ const App: React.FC = () => {
   // --- Mock logged-in user (Super Admin) ---
   const currentUser = useMemo(() => users.find(u => u.role === 'Super Admin'), [users]);
 
+  // Update URL hash on page change for basic routing/bookmarking
+  useEffect(() => {
+    window.location.hash = `/${activePage}`;
+  }, [activePage]);
+
   const handlePageChange = useCallback((page: NavigationItem) => {
     setActivePage(page);
+    // Close sidebar on navigation in mobile view
+    if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+    }
   }, []);
 
   const handleLogProgress = useCallback((logData: { kpiId: string; year: number; month: number; actual: number; notes?: string }) => {
@@ -59,15 +74,15 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (activePage) {
       case NavigationItem.Dashboard:
-        return <Dashboard kpis={kpis} users={users} onLogProgress={handleLogProgress} />;
+        return <Dashboard kpis={kpis} users={users} />;
       case NavigationItem.KPIs:
         return <KpiManagement goals={goals} kpis={kpis} users={users} setGoals={setGoals} setKpis={setKpis} onLogProgress={handleLogProgress} />;
       case NavigationItem.Team:
         return <Team users={users} setUsers={setUsers} />;
       case NavigationItem.Settings:
-        return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} />;
+        return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} kpis={kpis} setKpis={setKpis} />;
       default:
-        return <Dashboard kpis={kpis} users={users} onLogProgress={handleLogProgress} />;
+        return <Dashboard kpis={kpis} users={users} />;
     }
   };
 
@@ -86,9 +101,9 @@ const App: React.FC = () => {
   return (
     <div className={`${theme}`}>
         <div className="flex h-screen bg-light-bg dark:bg-dark-bg">
-        <Sidebar activePage={activePage} onPageChange={handlePageChange} currentUser={currentUser} />
+        <Sidebar activePage={activePage} onPageChange={handlePageChange} currentUser={currentUser} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
         <div className="flex-1 flex flex-col overflow-hidden">
-            <Header />
+            <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
             <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 lg:p-12">
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={goals} strategy={verticalListSortingStrategy}>

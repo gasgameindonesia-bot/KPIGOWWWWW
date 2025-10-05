@@ -53,4 +53,5 @@ export interface KPI {
     frequency: KpiFrequency;
     ownerId: string;
     monthlyProgress: MonthlyProgress[];
+    progressBarColor?: string;
 }

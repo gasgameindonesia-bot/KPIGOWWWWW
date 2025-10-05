@@ -28,7 +28,8 @@ export const mockKpis: KPI[] = [
         { year: currentYear, month: 7, target: 167000, actual: 120000 },
         { year: currentYear, month: 8, target: 167000, actual: 155000 },
         { year: currentYear, month: 9, target: 167000, actual: 100000 },
-      ]
+      ],
+      progressBarColor: '#3498db',
     },
     { 
       id: 'kpi-2', 
@@ -54,7 +55,8 @@ export const mockKpis: KPI[] = [
       ownerId: 'user-4',
       monthlyProgress: [
         { year: currentYear, month: 9, target: 500, actual: 480 },
-      ]
+      ],
+      progressBarColor: '#9b59b6',
     },
     { 
       id: 'kpi-4', 

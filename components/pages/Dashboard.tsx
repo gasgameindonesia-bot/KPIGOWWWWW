@@ -1,17 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { KPI, User } from '../../types';
 import { Card } from '../ui/Card';
 import { KpiProgressChart } from '../charts/KpiProgressChart';
 import { ProgressBar } from '../ui/ProgressBar';
-import { LogProgressModal } from './LogProgressModal';
 
 interface DashboardProps {
   kpis: KPI[];
   users: User[];
-  onLogProgress: (logData: { kpiId: string; year: number; month: number; actual: number; notes?: string }) => void;
 }
 
-const KpiCard: React.FC<{ kpi: KPI, user?: User, onLogProgressClick: (kpi: KPI) => void }> = ({ kpi, user, onLogProgressClick }) => {
+const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
   const currentMonthData = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
@@ -42,32 +40,14 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User, onLogProgressClick: (kpi: KPI) 
             Target: {kpi.unit}{targetValue.toLocaleString()}
           </p>
         </div>
-        <ProgressBar progress={progress} className="mt-2" />
+        <ProgressBar progress={progress} className="mt-2" customColor={kpi.progressBarColor} />
       </div>
-       <button 
-        onClick={() => onLogProgressClick(kpi)}
-        className="mt-4 w-full bg-primary-light/10 text-primary font-semibold py-2 rounded-lg hover:bg-primary-light/20 transition-colors dark:text-primary-light dark:hover:bg-primary-light/30">
-          Log Progress
-       </button>
     </Card>
   );
 };
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, onLogProgress }) => {
-    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-    const [selectedKpi, setSelectedKpi] = useState<KPI | null>(null);
-
-    const handleOpenLogModal = (kpi: KPI) => {
-        setSelectedKpi(kpi);
-        setIsLogModalOpen(true);
-    };
-
-    const handleCloseLogModal = () => {
-        setSelectedKpi(null);
-        setIsLogModalOpen(false);
-    };
-
+export const Dashboard: React.FC<DashboardProps> = ({ kpis, users }) => {
     const totalKpis = kpis.length;
     const { onTrackKpis, overallProgress } = useMemo(() => {
         const now = new Date();
@@ -126,17 +106,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, onLogProgress
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {kpis.map(kpi => {
                 const owner = users.find(u => u.id === kpi.ownerId);
-                return <KpiCard key={kpi.id} kpi={kpi} user={owner} onLogProgressClick={handleOpenLogModal} />;
+                return <KpiCard key={kpi.id} kpi={kpi} user={owner} />;
             })}
         </div>
       </div>
-      
-      <LogProgressModal
-        isOpen={isLogModalOpen}
-        onClose={handleCloseLogModal}
-        kpi={selectedKpi}
-        onLogSubmit={onLogProgress}
-      />
     </div>
   );
 };

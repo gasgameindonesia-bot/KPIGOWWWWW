@@ -1,29 +1,14 @@
 import React, { useState } from 'react';
 import type { User } from '../../types';
 import { UserRole } from '../../types';
-import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
+import { UserProfileView } from './UserProfileView';
 
 interface TeamProps {
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 }
-
-const UserCard: React.FC<{ user: User }> = ({ user }) => (
-  <Card className="text-center flex flex-col items-center">
-    <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-full mb-4 shadow-lg" />
-    <h3 className="text-lg font-bold text-gray-800 dark:text-dark-text">{user.name}</h3>
-    <p className="text-light-text text-sm">{user.email}</p>
-    <div className="my-3 text-center">
-        <p className="font-semibold text-primary dark:text-primary-light">{user.jobTitle}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{user.division}</p>
-    </div>
-    <span className={`mt-auto px-3 py-1 text-xs font-semibold rounded-full ${user.role === UserRole.SuperAdmin ? 'bg-primary/20 text-primary-dark dark:text-primary-light' : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200'}`}>
-      {user.role}
-    </span>
-  </Card>
-);
 
 export const Team: React.FC<TeamProps> = ({ users, setUsers }) => {
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
@@ -36,7 +21,7 @@ export const Team: React.FC<TeamProps> = ({ users, setUsers }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {users.map(user => <UserCard key={user.id} user={user} />)}
+        {users.map(user => <UserProfileView key={user.id} user={user} />)}
       </div>
 
       <Modal isOpen={isInviteModalOpen} onClose={() => setInviteModalOpen(false)} title="Invite New Team Member">

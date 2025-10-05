@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { User } from '../../types';
+import type { User, KPI } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ToggleSwitch } from '../ui/ToggleSwitch';
@@ -9,15 +9,18 @@ interface SettingsProps {
     setUsers: React.Dispatch<React.SetStateAction<User[]>>;
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
+    kpis: KPI[];
+    setKpis: React.Dispatch<React.SetStateAction<KPI[]>>;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme }) => {
+export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme, kpis, setKpis }) => {
     const [profileData, setProfileData] = useState({ 
         name: '', 
         email: '', 
         jobTitle: '', 
         division: '' 
     });
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
     useEffect(() => {
         if (currentUser) {
@@ -41,7 +44,10 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
         setUsers(prevUsers => prevUsers.map(user => 
             user.id === currentUser.id ? { ...user, ...profileData } : user
         ));
-        // Add a success toast/message in a real app
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+            setShowSuccessMessage(false);
+        }, 3000);
     };
 
     const [notifications, setNotifications] = useState({
@@ -52,6 +58,14 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
 
     const handleNotificationChange = (key: keyof typeof notifications) => {
         setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleColorChange = (kpiId: string, color: string) => {
+        setKpis(prevKpis =>
+            prevKpis.map(kpi =>
+                kpi.id === kpiId ? { ...kpi, progressBarColor: color } : kpi
+            )
+        );
     };
 
     if (!currentUser) {
@@ -86,7 +100,12 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
                             <input type="text" id="division" name="division" value={profileData.division} onChange={handleProfileChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
                         </div>
                     </div>
-                    <div className="mt-6 flex justify-end">
+                    <div className="mt-6 flex justify-end items-center space-x-4">
+                        {showSuccessMessage && (
+                            <p className="text-accent text-sm font-medium">
+                                Profile updated successfully!
+                            </p>
+                        )}
                         <Button type="submit">Save Changes</Button>
                     </div>
                 </form>
@@ -117,6 +136,30 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
                         </div>
                         <ToggleSwitch checked={notifications.teamMentions} onChange={() => handleNotificationChange('teamMentions')} />
                     </div>
+                </div>
+            </Card>
+
+            {/* KPI Color Settings */}
+            <Card>
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">KPI Progress Bar Colors</h2>
+                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                    {kpis.map(kpi => (
+                        <div key={kpi.id} className="flex justify-between items-center">
+                            <p className="font-medium text-gray-800 dark:text-dark-text truncate pr-4">{kpi.title}</p>
+                            <input
+                                type="color"
+                                value={kpi.progressBarColor || '#FFFFFF'}
+                                onChange={(e) => handleColorChange(kpi.id, e.target.value)}
+                                className="w-10 h-10 p-1 border-0 rounded cursor-pointer bg-transparent"
+                                style={{
+                                    WebkitAppearance: 'none',
+                                    MozAppearance: 'none',
+                                    appearance: 'none'
+                                }}
+                                title={`Customize color for ${kpi.title}`}
+                            />
+                        </div>
+                    ))}
                 </div>
             </Card>
         </div>

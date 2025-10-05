@@ -29,27 +29,31 @@ const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; onL
   const progress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
   
   return (
-    <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 flex items-center justify-between hover:shadow-md transition-shadow">
-      <div className="flex items-center">
-        <div>
-            <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
-            <span>{user ? user.name : 'Unassigned'}</span>
+    <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start">
+            <div>
+                <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
+                <span>{user ? user.name : 'Unassigned'}</span>
+                </div>
+            </div>
+            <div className="hidden sm:flex items-center space-x-2 flex-shrink-0 ml-4">
+                <Button variant="outline" size="sm" onClick={() => onLogProgress(kpi)}>Log</Button>
+                <Button variant="outline" size="sm" onClick={() => onEdit(kpi)}>Edit</Button>
             </div>
         </div>
-      </div>
-      <div className="flex items-center w-1/2 space-x-2">
-        <div className="w-2/3">
+        <div className="mt-4">
             <div className="flex justify-between text-sm mb-1 text-gray-800 dark:text-dark-text">
                 <span>{kpi.unit}{currentValue.toLocaleString()}</span>
                 <span className="text-gray-500 dark:text-gray-400">/{targetValue.toLocaleString()}</span>
             </div>
-            <ProgressBar progress={progress} />
+            <ProgressBar progress={progress} customColor={kpi.progressBarColor} />
         </div>
-        <Button variant="outline" size="sm" onClick={() => onLogProgress(kpi)}>Log</Button>
-        <Button variant="outline" size="sm" onClick={() => onEdit(kpi)}>Edit</Button>
-      </div>
+        <div className="sm:hidden flex space-x-2 mt-4">
+            <Button variant="outline" size="sm" className="w-full" onClick={() => onLogProgress(kpi)}>Log Progress</Button>
+            <Button variant="outline" size="sm" className="w-full" onClick={() => onEdit(kpi)}>Edit</Button>
+        </div>
     </div>
   );
 };
@@ -75,7 +79,7 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
   return (
     <div ref={setNodeRef} style={style}>
         <Card className="mb-6">
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4">
                 <div className="flex items-center flex-grow">
                     {/* Drag Handle */}
                     <div {...attributes} {...listeners} className="p-2 cursor-grab touch-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded-md" aria-label="Drag handle">
@@ -93,7 +97,7 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
                         <p className="text-gray-600 dark:text-gray-300 mt-1">{goal.description}</p>
                     </div>
                 </div>
-                <div className="flex-shrink-0 flex space-x-2">
+                <div className="flex-shrink-0 flex space-x-2 mt-4 sm:mt-0 self-end sm:self-auto">
                   <Button variant="outline" size="sm" onClick={() => onEditGoal(goal)}>Edit Goal</Button>
                   <Button variant="primary" size="sm" onClick={() => onAddKpi(goal.id)}>Add KPI</Button>
                 </div>
