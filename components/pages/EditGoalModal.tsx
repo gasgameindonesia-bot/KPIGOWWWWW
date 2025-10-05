@@ -30,8 +30,10 @@ export const EditGoalModal: FC<EditGoalModalProps> = ({ isOpen, onClose, goal, o
   const handleStaffChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const options = e.target.options;
     const selectedIds = Array.from(options)
-        .filter(option => option.selected)
-        .map(option => option.value);
+        // Fix: Explicitly type `option` as `HTMLOptionElement` to resolve TypeScript errors
+        // where it was being inferred as `unknown`, allowing access to `selected` and `value`.
+        .filter((option: HTMLOptionElement) => option.selected)
+        .map((option: HTMLOptionElement) => option.value);
     setEditedStaffIds(selectedIds);
   };
 

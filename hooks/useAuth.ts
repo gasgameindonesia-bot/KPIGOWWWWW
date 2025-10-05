@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import type { User, Company, SubscriptionStatus } from '../types';
 import { UserRole } from '../types';
@@ -71,6 +72,11 @@ export const useAuth = () => {
         return false;
     };
 
+    const loginWithGoogle = () => {
+        // Simulate logging in with Google as an existing mock user
+        login('eleanor@kpi-go.com');
+    };
+
     const logout = () => {
         localStorage.removeItem(MOCK_USER_STORAGE_KEY);
         localStorage.removeItem(MOCK_COMPANY_STORAGE_KEY);
@@ -112,5 +118,5 @@ export const useAuth = () => {
     };
 
 
-    return { user, company, subscriptionStatus, login, logout, signUp };
+    return { user, company, subscriptionStatus, login, logout, signUp, loginWithGoogle };
 };

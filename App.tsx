@@ -19,7 +19,7 @@ import { PricingPage } from './components/pages/PricingPage';
 
 
 const App: React.FC = () => {
-  const { user, company, subscriptionStatus, login, logout, signUp } = useAuth();
+  const { user, company, subscriptionStatus, login, logout, signUp, loginWithGoogle } = useAuth();
 
   const [activePage, setActivePage] = useState<NavigationItem>(() => {
     const hash = window.location.hash.replace('#/', '');
@@ -232,7 +232,7 @@ const App: React.FC = () => {
   };
 
   if (!user || !company) {
-    return <AuthPage onLogin={login} onSignUp={signUp} />;
+    return <AuthPage onLogin={login} onSignUp={signUp} onLoginWithGoogle={loginWithGoogle} />;
   }
 
   return (

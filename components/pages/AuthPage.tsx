@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LoginForm } from '../auth/LoginForm';
 import { SignUpForm } from '../auth/SignUpForm';
@@ -5,9 +6,10 @@ import { SignUpForm } from '../auth/SignUpForm';
 interface AuthPageProps {
   onLogin: (email: string) => boolean;
   onSignUp: (name: string, email: string, companyName: string) => void;
+  onLoginWithGoogle: () => void;
 }
 
-export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignUp }) => {
+export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignUp, onLoginWithGoogle }) => {
   const [isLoginView, setIsLoginView] = useState(true);
 
   return (
@@ -23,7 +25,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onSignUp }) => {
         </div>
         
         <div className="bg-white dark:bg-dark-card rounded-xl shadow-lg p-8 border border-gray-200/80 dark:border-gray-700/80">
-          {isLoginView ? <LoginForm onLogin={onLogin} /> : <SignUpForm onSignUp={onSignUp} />}
+          {isLoginView ? <LoginForm onLogin={onLogin} onLoginWithGoogle={onLoginWithGoogle} /> : <SignUpForm onSignUp={onSignUp} onLoginWithGoogle={onLoginWithGoogle} />}
           
           <div className="mt-6 text-center">
             <button 
