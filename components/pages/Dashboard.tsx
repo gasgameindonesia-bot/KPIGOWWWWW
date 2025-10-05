@@ -3,6 +3,7 @@ import type { KPI, User, Goal } from '../../types';
 import { Card } from '../ui/Card';
 import { KpiProgressChart } from '../charts/KpiProgressChart';
 import { ProgressBar } from '../ui/ProgressBar';
+import { KpiStatusBadge } from '../ui/KpiStatusBadge';
 
 interface DashboardProps {
   kpis: KPI[];
@@ -26,11 +27,14 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
   return (
     <Card className="flex flex-col">
       <div className="flex justify-between items-start">
-        <div>
+        <div className="flex-grow mr-2">
           <p className="text-sm text-light-text">{currentMonthName} Progress</p>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h3>
+          <div className="flex items-center flex-wrap gap-x-2 mt-1">
+             <h3 className="text-lg font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h3>
+             <KpiStatusBadge actual={currentValue} target={targetValue} />
+          </div>
         </div>
-        {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />}
+        {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />}
       </div>
       <div className="mt-4 flex-grow">
         <div className="flex justify-between items-baseline">

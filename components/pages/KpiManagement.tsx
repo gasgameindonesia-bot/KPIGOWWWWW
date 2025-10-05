@@ -10,6 +10,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { EditGoalModal } from './EditGoalModal';
 import { EditKpiModal } from './EditKpiModal';
 import { LogProgressModal } from './LogProgressModal';
+import { KpiStatusBadge } from '../ui/KpiStatusBadge';
 
 interface KpiManagementProps {
   goals: Goal[];
@@ -34,14 +35,15 @@ const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; onL
     <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
             <div>
-                <h4 className="font-semibold text-gray-800 dark:text-dark-text flex items-center">
-                    {kpi.title}
+                <div className="flex items-center flex-wrap gap-2">
+                    <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
+                    <KpiStatusBadge actual={currentValue} target={targetValue} />
                     {kpi.weight && (
-                        <span className="ml-2 text-xs font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200 px-2 py-0.5 rounded-full">
-                            {kpi.weight}%
+                        <span className="text-xs font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200 px-2 py-0.5 rounded-full">
+                            Weight: {kpi.weight}%
                         </span>
                     )}
-                </h4>
+                </div>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
                 <span>{user ? user.name : 'Unassigned'}</span>
