@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Goal, KPI, User, MonthlyProgress } from '../../types';
 import { KpiFrequency } from '../../types';
 import { Card } from '../ui/Card';
@@ -32,7 +32,14 @@ const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; onL
     <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
             <div>
-                <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-dark-text flex items-center">
+                    {kpi.title}
+                    {kpi.weight && (
+                        <span className="ml-2 text-xs font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200 px-2 py-0.5 rounded-full">
+                            {kpi.weight}%
+                        </span>
+                    )}
+                </h4>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
                 <span>{user ? user.name : 'Unassigned'}</span>
@@ -75,6 +82,27 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
   const manager = users.find(u => u.id === goal.managerId);
   const staff = users.filter(u => goal.staffIds.includes(u.id));
 
+  const goalProgress = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    const totalWeight = kpis.reduce((sum, kpi) => sum + (kpi.weight || 0), 0);
+    if (totalWeight === 0) return 0;
+
+    const weightedProgressSum = kpis.reduce((sum, kpi) => {
+        const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
+        const currentValue = monthData?.actual ?? 0;
+        const targetValue = monthData?.target ?? 0;
+        const kpiProgress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
+        const kpiWeight = kpi.weight || 0;
+        
+        return sum + (kpiProgress * kpiWeight);
+    }, 0);
+
+    return weightedProgressSum / totalWeight;
+  }, [kpis]);
+
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -101,6 +129,13 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
                   <Button variant="outline" size="sm" onClick={() => onEditGoal(goal)}>Edit Goal</Button>
                   <Button variant="primary" size="sm" onClick={() => onAddKpi(goal.id)}>Add KPI</Button>
                 </div>
+            </div>
+            <div className="my-4">
+                <div className="flex justify-between text-sm mb-1">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">Overall Goal Progress (Current Month)</span>
+                    <span className="font-bold text-primary">{goalProgress.toFixed(0)}%</span>
+                </div>
+                <ProgressBar progress={goalProgress} />
             </div>
              { (manager || staff.length > 0) && (
                 <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -158,8 +193,9 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
     unit: '',
     frequency: KpiFrequency.Monthly,
     ownerId: '',
+    weight: '',
   });
-  const [kpiErrors, setKpiErrors] = useState({ title: '', monthlyTarget: '', ownerId: '' });
+  const [kpiErrors, setKpiErrors] = useState({ title: '', monthlyTarget: '', ownerId: '', weight: '' });
 
 
   const handleOpenEditGoalModal = (goal: Goal) => {
@@ -194,8 +230,8 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
   const handleCloseAddKpiModal = () => {
     setIsAddKpiModalOpen(false);
     setAddingKpiToGoalId(null);
-    setNewKpiData({ title: '', monthlyTarget: '', unit: '', frequency: KpiFrequency.Monthly, ownerId: '' });
-    setKpiErrors({ title: '', monthlyTarget: '', ownerId: '' });
+    setNewKpiData({ title: '', monthlyTarget: '', unit: '', frequency: KpiFrequency.Monthly, ownerId: '', weight: '' });
+    setKpiErrors({ title: '', monthlyTarget: '', ownerId: '', weight: '' });
   };
   
   const handleNewKpiDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -204,23 +240,45 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
   };
   
   const validateKpiForm = () => {
-    const errors = { title: '', monthlyTarget: '', ownerId: '' };
+    const errors = { title: '', monthlyTarget: '', ownerId: '', weight: '' };
     let isValid = true;
 
     if (!newKpiData.title.trim()) {
       errors.title = 'KPI title is required.';
       isValid = false;
     }
-
+    
     const targetValue = parseFloat(newKpiData.monthlyTarget);
-    if (isNaN(targetValue) || targetValue <= 0) {
-      errors.monthlyTarget = 'Target must be a positive number.';
-      isValid = false;
+
+    if (!newKpiData.monthlyTarget) {
+        errors.monthlyTarget = 'A monthly target is required.';
+        isValid = false;
+    } else if (isNaN(targetValue) || targetValue <= 0) {
+        errors.monthlyTarget = 'Target must be a positive number.';
+        isValid = false;
     }
 
     if (!newKpiData.ownerId) {
         errors.ownerId = 'Please select an owner.';
         isValid = false;
+    }
+
+    const weightValue = parseFloat(newKpiData.weight);
+    if (!newKpiData.weight) {
+        errors.weight = 'Weight is required.';
+        isValid = false;
+    } else if (isNaN(weightValue) || weightValue <= 0 || weightValue > 100) {
+        errors.weight = 'Weight must be between 1 and 100.';
+        isValid = false;
+    } else if (addingKpiToGoalId) {
+        const existingWeight = kpis
+            .filter(k => k.goalId === addingKpiToGoalId)
+            .reduce((sum, k) => sum + (k.weight || 0), 0);
+        
+        if (existingWeight + weightValue > 100) {
+            errors.weight = `Total weight for this goal cannot exceed 100%. Current weight is ${existingWeight}%.`;
+            isValid = false;
+        }
     }
     
     setKpiErrors(errors);
@@ -234,6 +292,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
     }
     
     const target = parseFloat(newKpiData.monthlyTarget);
+
     const currentYear = new Date().getFullYear();
     const monthlyProgress: MonthlyProgress[] = Array.from({ length: 12 }, (_, i) => ({
         year: currentYear,
@@ -250,6 +309,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
       unit: newKpiData.unit,
       frequency: newKpiData.frequency as KpiFrequency,
       ownerId: newKpiData.ownerId,
+      weight: parseFloat(newKpiData.weight),
     };
   
     setKpis(prevKpis => [...prevKpis, newKpi]);
@@ -395,6 +455,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
         kpi={editingKpi}
         setKpis={setKpis}
         users={users}
+        kpis={kpis}
       />
 
       <LogProgressModal
@@ -413,7 +474,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor="kpiMonthlyTarget" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Default Monthly Target</label>
+              <label htmlFor="kpiMonthlyTarget" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Target</label>
               <input type="number" id="kpiMonthlyTarget" name="monthlyTarget" value={newKpiData.monthlyTarget} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${kpiErrors.monthlyTarget ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} />
                {kpiErrors.monthlyTarget && <p className="text-danger text-sm mt-1">{kpiErrors.monthlyTarget}</p>}
             </div>
@@ -422,6 +483,19 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
               <input type="text" id="kpiUnit" name="unit" value={newKpiData.unit} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
             </div>
           </div>
+           <div className="mb-4">
+            <label htmlFor="kpiWeight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weight (%)</label>
+            <input 
+                type="number" 
+                id="kpiWeight" 
+                name="weight" 
+                value={newKpiData.weight} 
+                onChange={handleNewKpiDataChange} 
+                placeholder="e.g., 30"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${kpiErrors.weight ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} 
+            />
+            {kpiErrors.weight && <p className="text-danger text-sm mt-1">{kpiErrors.weight}</p>}
+        </div>
           <div className="mb-4">
             <label htmlFor="kpiFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
             <select id="kpiFrequency" name="frequency" value={newKpiData.frequency} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">

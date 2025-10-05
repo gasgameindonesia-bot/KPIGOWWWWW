@@ -11,15 +11,18 @@ interface EditKpiModalProps {
   kpi: KPI | null;
   setKpis: React.Dispatch<React.SetStateAction<KPI[]>>;
   users: User[];
+  kpis: KPI[];
 }
 
-export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setKpis, users }) => {
+export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setKpis, users, kpis }) => {
   const [formData, setFormData] = useState({
     title: '',
     unit: '',
     frequency: KpiFrequency.Monthly,
     ownerId: '',
+    weight: 0,
   });
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (kpi) {
@@ -28,18 +31,34 @@ export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setK
         unit: kpi.unit,
         frequency: kpi.frequency,
         ownerId: kpi.ownerId,
+        weight: kpi.weight || 0,
       });
+      setError('');
     }
   }, [kpi]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: name === 'weight' ? parseFloat(value) || 0 : value }));
   };
 
   const handleSaveChanges = (e: React.FormEvent) => {
     e.preventDefault();
     if (!kpi) return;
+
+    if (formData.weight <= 0 || formData.weight > 100) {
+        setError('Weight must be between 1 and 100.');
+        return;
+    }
+
+    const existingWeight = kpis
+        .filter(k => k.goalId === kpi.goalId && k.id !== kpi.id)
+        .reduce((sum, k) => sum + (k.weight || 0), 0);
+    
+    if (existingWeight + formData.weight > 100) {
+        setError(`Total weight for this goal cannot exceed 100%. Other KPIs use ${existingWeight}%.`);
+        return;
+    }
 
     setKpis(prevKpis =>
       prevKpis.map(k =>
@@ -50,6 +69,7 @@ export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setK
               unit: formData.unit,
               frequency: formData.frequency as KpiFrequency,
               ownerId: formData.ownerId,
+              weight: formData.weight,
             }
           : k
       )
@@ -78,6 +98,17 @@ export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setK
             {Object.values(KpiFrequency).map(freq => <option key={freq} value={freq}>{freq}</option>)}
           </select>
         </div>
+         <div className="mb-4">
+            <label htmlFor="editKpiWeight" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weight (%)</label>
+            <input 
+                type="number" 
+                id="editKpiWeight" 
+                name="weight" 
+                value={formData.weight} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${error ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} 
+            />
+        </div>
         <div className="mb-6">
           <label htmlFor="editKpiOwner" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Owner</label>
           <select id="editKpiOwner" name="ownerId" value={formData.ownerId} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">
@@ -85,6 +116,7 @@ export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setK
             {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
           </select>
         </div>
+        {error && <p className="text-danger text-sm mb-4">{error}</p>}
         <div className="flex justify-end space-x-3">
           <Button variant="outline" type="button" onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit">Save Changes</Button>

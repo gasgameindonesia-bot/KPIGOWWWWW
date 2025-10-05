@@ -30,6 +30,7 @@ export const mockKpis: KPI[] = [
         { year: currentYear, month: 9, target: 167000, actual: 100000 },
       ],
       progressBarColor: '#3498db',
+      weight: 30,
     },
     { 
       id: 'kpi-2', 
@@ -42,7 +43,8 @@ export const mockKpis: KPI[] = [
         { year: currentYear, month: 7, target: 50000, actual: 40000 },
         { year: currentYear, month: 8, target: 50000, actual: 55000 },
         { year: currentYear, month: 9, target: 50000, actual: 15000 },
-      ]
+      ],
+      weight: 70,
     },
     // FIX: Removed `targetValue` and `currentValue` as they are not properties of the KPI type.
     // The data is correctly represented within the `monthlyProgress` array.
@@ -57,6 +59,7 @@ export const mockKpis: KPI[] = [
         { year: currentYear, month: 9, target: 500, actual: 480 },
       ],
       progressBarColor: '#9b59b6',
+      weight: 60,
     },
     { 
       id: 'kpi-4', 
@@ -67,7 +70,8 @@ export const mockKpis: KPI[] = [
       ownerId: 'user-4',
       monthlyProgress: [
         { year: currentYear, month: 9, target: 4, actual: 5 },
-      ]
+      ],
+      weight: 40,
     },
     { 
       id: 'kpi-5', 
@@ -78,6 +82,7 @@ export const mockKpis: KPI[] = [
       ownerId: 'user-2',
       monthlyProgress: [
         { year: currentYear, month: 9, target: 1000, actual: 650 },
-      ]
+      ],
+      weight: 100,
     },
 ];

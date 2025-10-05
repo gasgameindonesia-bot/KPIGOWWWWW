@@ -21,7 +21,7 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
         division: '' 
     });
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
+    
     useEffect(() => {
         if (currentUser) {
             setProfileData({ 
@@ -67,7 +67,7 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
             )
         );
     };
-
+    
     if (!currentUser) {
         return <p>Loading...</p>;
     }
@@ -110,7 +110,7 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
                     </div>
                 </form>
             </Card>
-
+            
             {/* Notification Settings */}
             <Card>
                 <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">Notifications</h2>

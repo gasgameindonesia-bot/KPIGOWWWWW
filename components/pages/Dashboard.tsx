@@ -138,22 +138,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
             const currentMonth = now.getMonth() + 1;
             const currentYear = now.getFullYear();
             
-            let averageProgress = 0;
-            const kpisWithProgressThisMonth = managerKpis.filter(kpi => {
+            let totalWeightedProgressSum = 0;
+            let totalWeightSum = 0;
+            
+            managerKpis.forEach(kpi => {
                 const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
-                return monthData && monthData.target > 0;
-            });
+                const kpiWeight = kpi.weight || 0;
 
-            if (kpisWithProgressThisMonth.length > 0) {
-                const sumOfProgress = kpisWithProgressThisMonth.reduce((acc, kpi) => {
-                    const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
-                    if (monthData && monthData.target > 0) {
-                        return acc + (monthData.actual / monthData.target) * 100;
-                    }
-                    return acc;
-                }, 0);
-                averageProgress = sumOfProgress / kpisWithProgressThisMonth.length;
-            }
+                // Only consider KPIs with weight for the average calculation
+                if (monthData && kpiWeight > 0) {
+                    const currentValue = monthData.actual ?? 0;
+                    const targetValue = monthData.target ?? 0;
+                    const kpiProgress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
+                    
+                    totalWeightedProgressSum += kpiProgress * kpiWeight;
+                    totalWeightSum += kpiWeight;
+                }
+            });
+            
+            const averageProgress = totalWeightSum > 0 ? totalWeightedProgressSum / totalWeightSum : 0;
 
             return {
                 manager,

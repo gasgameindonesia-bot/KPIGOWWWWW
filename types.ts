@@ -54,4 +54,5 @@ export interface KPI {
     ownerId: string;
     monthlyProgress: MonthlyProgress[];
     progressBarColor?: string;
+    weight?: number;
 }
