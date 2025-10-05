@@ -29,7 +29,7 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User, onLogProgressClick: (kpi: KPI) 
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm text-light-text">{currentMonthName} Progress</p>
-          <h3 className="text-lg font-semibold text-dark-text">{kpi.title}</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h3>
         </div>
         {user && <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" />}
       </div>
@@ -46,7 +46,7 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User, onLogProgressClick: (kpi: KPI) 
       </div>
        <button 
         onClick={() => onLogProgressClick(kpi)}
-        className="mt-4 w-full bg-primary-light/10 text-primary font-semibold py-2 rounded-lg hover:bg-primary-light/20 transition-colors">
+        className="mt-4 w-full bg-primary-light/10 text-primary font-semibold py-2 rounded-lg hover:bg-primary-light/20 transition-colors dark:text-primary-light dark:hover:bg-primary-light/30">
           Log Progress
        </button>
     </Card>
@@ -97,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, onLogProgress
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-dark-text mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-dark-text mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
@@ -116,13 +116,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, onLogProgress
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card className="lg:col-span-2">
-            <h2 className="text-xl font-semibold mb-4">Monthly Sales Revenue</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">Monthly Sales Revenue</h2>
             {mainKpi && <KpiProgressChart progress={mainKpi.monthlyProgress} unit={mainKpi.unit}/>}
         </Card>
       </div>
       
       <div>
-        <h2 className="text-2xl font-bold text-dark-text mb-4">Your KPIs</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text mb-4">Your KPIs</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {kpis.map(kpi => {
                 const owner = users.find(u => u.id === kpi.ownerId);

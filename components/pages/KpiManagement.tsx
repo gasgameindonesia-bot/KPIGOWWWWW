@@ -9,6 +9,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { EditGoalModal } from './EditGoalModal';
 import { EditKpiModal } from './EditKpiModal';
+import { LogProgressModal } from './LogProgressModal';
 
 interface KpiManagementProps {
   goals: Goal[];
@@ -16,9 +17,10 @@ interface KpiManagementProps {
   users: User[];
   setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
   setKpis: React.Dispatch<React.SetStateAction<KPI[]>>;
+  onLogProgress: (logData: { kpiId: string; year: number; month: number; actual: number; notes?: string }) => void;
 }
 
-const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; }> = ({ kpi, user, onEdit }) => {
+const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; onLogProgress: (kpi: KPI) => void; }> = ({ kpi, user, onEdit, onLogProgress }) => {
   const now = new Date();
   const currentMonthData = kpi.monthlyProgress.find(p => p.year === now.getFullYear() && p.month === now.getMonth() + 1);
   
@@ -27,31 +29,32 @@ const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; }> 
   const progress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
   
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-3 flex items-center justify-between hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 flex items-center justify-between hover:shadow-md transition-shadow">
       <div className="flex items-center">
         <div>
-            <h4 className="font-semibold">{kpi.title}</h4>
-            <div className="flex items-center text-sm text-gray-500 mt-1">
+            <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
             {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
             <span>{user ? user.name : 'Unassigned'}</span>
             </div>
         </div>
       </div>
-      <div className="flex items-center w-1/2">
-        <div className="w-2/3 mr-4">
-            <div className="flex justify-between text-sm mb-1">
+      <div className="flex items-center w-1/2 space-x-2">
+        <div className="w-2/3">
+            <div className="flex justify-between text-sm mb-1 text-gray-800 dark:text-dark-text">
                 <span>{kpi.unit}{currentValue.toLocaleString()}</span>
-                <span className="text-gray-500">/{targetValue.toLocaleString()}</span>
+                <span className="text-gray-500 dark:text-gray-400">/{targetValue.toLocaleString()}</span>
             </div>
             <ProgressBar progress={progress} />
         </div>
+        <Button variant="outline" size="sm" onClick={() => onLogProgress(kpi)}>Log</Button>
         <Button variant="outline" size="sm" onClick={() => onEdit(kpi)}>Edit</Button>
       </div>
     </div>
   );
 };
 
-const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEditGoal: (goal: Goal) => void; onAddKpi: (goalId: string) => void; onEditKpi: (kpi: KPI) => void; }> = ({ goal, kpis, users, onEditGoal, onAddKpi, onEditKpi }) => {
+const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEditGoal: (goal: Goal) => void; onAddKpi: (goalId: string) => void; onEditKpi: (kpi: KPI) => void; onLogKpiProgress: (kpi: KPI) => void; }> = ({ goal, kpis, users, onEditGoal, onAddKpi, onEditKpi, onLogKpiProgress }) => {
   const {
     attributes,
     listeners,
@@ -70,12 +73,25 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
 
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style}>
         <Card className="mb-6">
             <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-primary">{goal.title}</h3>
-                  <p className="text-gray-600 mt-1">{goal.description}</p>
+                <div className="flex items-center flex-grow">
+                    {/* Drag Handle */}
+                    <div {...attributes} {...listeners} className="p-2 cursor-grab touch-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded-md" aria-label="Drag handle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="9" cy="6" r="1.5" fill="currentColor"/>
+                            <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
+                            <circle cx="9" cy="18" r="1.5" fill="currentColor"/>
+                            <circle cx="15" cy="6" r="1.5" fill="currentColor"/>
+                            <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
+                            <circle cx="15" cy="18" r="1.5" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div className="ml-2 flex-grow">
+                        <h3 className="text-xl font-bold text-primary">{goal.title}</h3>
+                        <p className="text-gray-600 dark:text-gray-300 mt-1">{goal.description}</p>
+                    </div>
                 </div>
                 <div className="flex-shrink-0 flex space-x-2">
                   <Button variant="outline" size="sm" onClick={() => onEditGoal(goal)}>Edit Goal</Button>
@@ -83,35 +99,35 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
                 </div>
             </div>
              { (manager || staff.length > 0) && (
-                <div className="mt-4 border-t pt-4">
-                    <h4 className="text-sm font-semibold text-gray-500 mb-3">Team In-Charge</h4>
+                <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Team In-Charge</h4>
                     <div className="flex items-center space-x-6">
                         {manager && (
                             <div>
-                                <p className="text-xs text-gray-400 mb-1">Manager</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Manager</p>
                                 <div className="flex items-center">
                                     <img src={manager.avatar} className="w-8 h-8 rounded-full" alt={manager.name} title={manager.name} />
-                                    <span className="ml-2 text-sm font-medium">{manager.name}</span>
+                                    <span className="ml-2 text-sm font-medium text-gray-800 dark:text-dark-text">{manager.name}</span>
                                 </div>
                             </div>
                         )}
                         {staff.length > 0 && (
                             <div>
-                                <p className="text-xs text-gray-400 mb-1">Staff</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Staff</p>
                                 <div className="flex items-center -space-x-2">
                                     {staff.map(member => (
-                                        <img key={member.id} src={member.avatar} className="w-8 h-8 rounded-full border-2 border-white" alt={member.name} title={member.name} />
+                                        <img key={member.id} src={member.avatar} className="w-8 h-8 rounded-full border-2 border-white dark:border-dark-card" alt={member.name} title={member.name} />
                                     ))}
-                                    {staff.length > 4 && <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-semibold z-10 border-2 border-white">+{staff.length - 4}</span>}
+                                    {staff.length > 4 && <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-semibold z-10 border-2 border-white dark:border-dark-card dark:bg-gray-600 dark:text-dark-text">+{staff.length - 4}</span>}
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
             )}
-            <div className="mt-4 border-t pt-4">
+            <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                 {kpis.map((kpi) => (
-                <KpiItem key={kpi.id} kpi={kpi} user={users.find(u => u.id === kpi.ownerId)} onEdit={onEditKpi} />
+                <KpiItem key={kpi.id} kpi={kpi} user={users.find(u => u.id === kpi.ownerId)} onEdit={onEditKpi} onLogProgress={onLogKpiProgress}/>
                 ))}
             </div>
         </Card>
@@ -119,10 +135,11 @@ const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEdi
   );
 };
 
-export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users, setGoals, setKpis }) => {
+export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users, setGoals, setKpis, onLogProgress }) => {
   const [isAddGoalModalOpen, setIsAddGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [editingKpi, setEditingKpi] = useState<KPI | null>(null);
+  const [loggingKpi, setLoggingKpi] = useState<KPI | null>(null);
   
   // State for adding a new goal
   const [newGoalData, setNewGoalData] = useState({ title: '', description: '', managerId: '', staffIds: [] as string[] });
@@ -155,6 +172,14 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
 
   const handleCloseEditKpiModal = () => {
     setEditingKpi(null);
+  };
+
+  const handleOpenLogProgressModal = (kpi: KPI) => {
+    setLoggingKpi(kpi);
+  };
+
+  const handleCloseLogProgressModal = () => {
+    setLoggingKpi(null);
   };
   
   const handleOpenAddKpiModal = (goalId: string) => {
@@ -286,7 +311,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-dark-text">Goals & KPIs</h1>
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-dark-text">Goals & KPIs</h1>
         <Button onClick={() => setIsAddGoalModalOpen(true)}>Add New Goal</Button>
       </div>
       
@@ -300,6 +325,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
                 onEditGoal={handleOpenEditGoalModal}
                 onAddKpi={handleOpenAddKpiModal}
                 onEditKpi={handleOpenEditKpiModal}
+                onLogKpiProgress={handleOpenLogProgressModal}
             />
         ))}
       </div>
@@ -307,40 +333,40 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
       <Modal isOpen={isAddGoalModalOpen} onClose={() => setIsAddGoalModalOpen(false)} title="Add New Goal">
         <form onSubmit={handleAddGoal}>
           <div className="mb-4">
-            <label htmlFor="goalTitle" className="block text-sm font-medium text-gray-700 mb-1">Goal Title</label>
+            <label htmlFor="goalTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Goal Title</label>
             <input 
               type="text" 
               id="goalTitle" 
               name="title"
               value={newGoalData.title}
               onChange={handleNewGoalDataChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${goalErrors.title ? 'border-danger' : 'border-gray-300'}`} 
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${goalErrors.title ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} 
             />
              {goalErrors.title && <p className="text-danger text-sm mt-1">{goalErrors.title}</p>}
           </div>
           <div className="mb-4">
-            <label htmlFor="goalDescription" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label htmlFor="goalDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea 
               id="goalDescription" 
               name="description"
               rows={3} 
               value={newGoalData.description}
               onChange={handleNewGoalDataChange}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${goalErrors.description ? 'border-danger' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${goalErrors.description ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`}
             ></textarea>
             {goalErrors.description && <p className="text-danger text-sm mt-1">{goalErrors.description}</p>}
           </div>
           <div className="mb-4">
-            <label htmlFor="goalManager" className="block text-sm font-medium text-gray-700 mb-1">Manager</label>
-             <select id="goalManager" name="managerId" value={newGoalData.managerId} onChange={handleNewGoalDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white ${goalErrors.managerId ? 'border-danger' : 'border-gray-300'}`}>
+            <label htmlFor="goalManager" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manager</label>
+             <select id="goalManager" name="managerId" value={newGoalData.managerId} onChange={handleNewGoalDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${goalErrors.managerId ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`}>
               <option value="" disabled>Select a manager</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
             {goalErrors.managerId && <p className="text-danger text-sm mt-1">{goalErrors.managerId}</p>}
           </div>
            <div className="mb-6">
-            <label htmlFor="goalStaff" className="block text-sm font-medium text-gray-700 mb-1">Staff (hold Ctrl/Cmd to select multiple)</label>
-            <select multiple id="goalStaff" name="staffIds" value={newGoalData.staffIds} onChange={handleNewGoalDataChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white h-32">
+            <label htmlFor="goalStaff" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Staff (hold Ctrl/Cmd to select multiple)</label>
+            <select multiple id="goalStaff" name="staffIds" value={newGoalData.staffIds} onChange={handleNewGoalDataChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text h-32">
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
           </div>
@@ -367,33 +393,40 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
         users={users}
       />
 
+      <LogProgressModal
+        isOpen={!!loggingKpi}
+        onClose={handleCloseLogProgressModal}
+        kpi={loggingKpi}
+        onLogSubmit={onLogProgress}
+      />
+
       <Modal isOpen={isAddKpiModalOpen} onClose={handleCloseAddKpiModal} title="Add New KPI">
         <form onSubmit={handleAddKpi}>
           <div className="mb-4">
-            <label htmlFor="kpiTitle" className="block text-sm font-medium text-gray-700 mb-1">KPI Title</label>
-            <input type="text" id="kpiTitle" name="title" value={newKpiData.title} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${kpiErrors.title ? 'border-danger' : 'border-gray-300'}`} />
+            <label htmlFor="kpiTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">KPI Title</label>
+            <input type="text" id="kpiTitle" name="title" value={newKpiData.title} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${kpiErrors.title ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} />
             {kpiErrors.title && <p className="text-danger text-sm mt-1">{kpiErrors.title}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor="kpiMonthlyTarget" className="block text-sm font-medium text-gray-700 mb-1">Default Monthly Target</label>
-              <input type="number" id="kpiMonthlyTarget" name="monthlyTarget" value={newKpiData.monthlyTarget} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${kpiErrors.monthlyTarget ? 'border-danger' : 'border-gray-300'}`} />
+              <label htmlFor="kpiMonthlyTarget" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Default Monthly Target</label>
+              <input type="number" id="kpiMonthlyTarget" name="monthlyTarget" value={newKpiData.monthlyTarget} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${kpiErrors.monthlyTarget ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`} />
                {kpiErrors.monthlyTarget && <p className="text-danger text-sm mt-1">{kpiErrors.monthlyTarget}</p>}
             </div>
             <div>
-              <label htmlFor="kpiUnit" className="block text-sm font-medium text-gray-700 mb-1">Unit (e.g., $, %)</label>
-              <input type="text" id="kpiUnit" name="unit" value={newKpiData.unit} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" />
+              <label htmlFor="kpiUnit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit (e.g., $, %)</label>
+              <input type="text" id="kpiUnit" name="unit" value={newKpiData.unit} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
             </div>
           </div>
           <div className="mb-4">
-            <label htmlFor="kpiFrequency" className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-            <select id="kpiFrequency" name="frequency" value={newKpiData.frequency} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white">
+            <label htmlFor="kpiFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
+            <select id="kpiFrequency" name="frequency" value={newKpiData.frequency} onChange={handleNewKpiDataChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">
               {Object.values(KpiFrequency).map(freq => <option key={freq} value={freq}>{freq}</option>)}
             </select>
           </div>
           <div className="mb-6">
-            <label htmlFor="kpiOwner" className="block text-sm font-medium text-gray-700 mb-1">Owner</label>
-            <select id="kpiOwner" name="ownerId" value={newKpiData.ownerId} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white ${kpiErrors.ownerId ? 'border-danger' : 'border-gray-300'}`}>
+            <label htmlFor="kpiOwner" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Owner</label>
+            <select id="kpiOwner" name="ownerId" value={newKpiData.ownerId} onChange={handleNewKpiDataChange} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${kpiErrors.ownerId ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`}>
               <option value="" disabled>Select a team member</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>

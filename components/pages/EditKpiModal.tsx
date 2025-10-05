@@ -65,22 +65,22 @@ export const EditKpiModal: FC<EditKpiModalProps> = ({ isOpen, onClose, kpi, setK
     <Modal isOpen={isOpen} onClose={onClose} title="Edit KPI">
       <form onSubmit={handleSaveChanges}>
         <div className="mb-4">
-          <label htmlFor="editKpiTitle" className="block text-sm font-medium text-gray-700 mb-1">KPI Title</label>
-          <input type="text" id="editKpiTitle" name="title" value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" />
+          <label htmlFor="editKpiTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">KPI Title</label>
+          <input type="text" id="editKpiTitle" name="title" value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
         </div>
         <div className="mb-4">
-            <label htmlFor="editKpiUnit" className="block text-sm font-medium text-gray-700 mb-1">Unit (e.g., $, %)</label>
-            <input type="text" id="editKpiUnit" name="unit" value={formData.unit} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" />
+            <label htmlFor="editKpiUnit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit (e.g., $, %)</label>
+            <input type="text" id="editKpiUnit" name="unit" value={formData.unit} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
         </div>
         <div className="mb-4">
-          <label htmlFor="editKpiFrequency" className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
-          <select id="editKpiFrequency" name="frequency" value={formData.frequency} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white">
+          <label htmlFor="editKpiFrequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
+          <select id="editKpiFrequency" name="frequency" value={formData.frequency} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">
             {Object.values(KpiFrequency).map(freq => <option key={freq} value={freq}>{freq}</option>)}
           </select>
         </div>
         <div className="mb-6">
-          <label htmlFor="editKpiOwner" className="block text-sm font-medium text-gray-700 mb-1">Owner</label>
-          <select id="editKpiOwner" name="ownerId" value={formData.ownerId} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white">
+          <label htmlFor="editKpiOwner" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Owner</label>
+          <select id="editKpiOwner" name="ownerId" value={formData.ownerId} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">
             <option value="" disabled>Select a team member</option>
             {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
           </select>

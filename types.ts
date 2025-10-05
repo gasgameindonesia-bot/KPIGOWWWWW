@@ -16,6 +16,8 @@ export interface User {
     email: string;
     role: UserRole;
     avatar: string;
+    jobTitle: string;
+    division: string;
 }
 
 export interface Goal {

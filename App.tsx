@@ -4,6 +4,7 @@ import { Header } from './components/layout/Header';
 import { Dashboard } from './components/pages/Dashboard';
 import { KpiManagement } from './components/pages/KpiManagement';
 import { Team } from './components/pages/Team';
+import { Settings } from './components/pages/Settings';
 import type { User, Goal, KPI, MonthlyProgress } from './types';
 import { mockUsers, mockGoals, mockKpis } from './data/mockData';
 import { NavigationItem } from './types';
@@ -13,7 +14,8 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<NavigationItem>(NavigationItem.Dashboard);
-  
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
   // --- Mock Data State ---
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [goals, setGoals] = useState<Goal[]>(mockGoals);
@@ -59,9 +61,11 @@ const App: React.FC = () => {
       case NavigationItem.Dashboard:
         return <Dashboard kpis={kpis} users={users} onLogProgress={handleLogProgress} />;
       case NavigationItem.KPIs:
-        return <KpiManagement goals={goals} kpis={kpis} users={users} setGoals={setGoals} setKpis={setKpis} />;
+        return <KpiManagement goals={goals} kpis={kpis} users={users} setGoals={setGoals} setKpis={setKpis} onLogProgress={handleLogProgress} />;
       case NavigationItem.Team:
         return <Team users={users} setUsers={setUsers} />;
+      case NavigationItem.Settings:
+        return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} />;
       default:
         return <Dashboard kpis={kpis} users={users} onLogProgress={handleLogProgress} />;
     }
@@ -80,18 +84,20 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="flex h-screen bg-light-bg">
-      <Sidebar activePage={activePage} onPageChange={handlePageChange} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header currentUser={currentUser} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-light-bg p-6 md:p-8 lg:p-12">
-           <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={goals} strategy={verticalListSortingStrategy}>
-              {renderPage()}
-            </SortableContext>
-           </DndContext>
-        </main>
-      </div>
+    <div className={`${theme}`}>
+        <div className="flex h-screen bg-light-bg dark:bg-dark-bg">
+        <Sidebar activePage={activePage} onPageChange={handlePageChange} currentUser={currentUser} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <Header />
+            <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8 lg:p-12">
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={goals} strategy={verticalListSortingStrategy}>
+                {renderPage()}
+                </SortableContext>
+            </DndContext>
+            </main>
+        </div>
+        </div>
     </div>
   );
 };

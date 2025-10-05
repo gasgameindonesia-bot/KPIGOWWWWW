@@ -2,10 +2,10 @@ import type { User, Goal, KPI } from '../types';
 import { UserRole, KpiFrequency } from '../types';
 
 export const mockUsers: User[] = [
-    { id: 'user-1', name: 'Eleanor Vance', email: 'eleanor@kpi-go.com', role: UserRole.SuperAdmin, avatar: 'https://picsum.photos/seed/user1/100/100' },
-    { id: 'user-2', name: 'Marcus Reyes', email: 'marcus@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user2/100/100' },
-    { id: 'user-3', name: 'Chloe Dubois', email: 'chloe@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user3/100/100' },
-    { id: 'user-4', name: 'Kenji Tanaka', email: 'kenji@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user4/100/100' },
+    { id: 'user-1', name: 'Eleanor Vance', email: 'eleanor@kpi-go.com', role: UserRole.SuperAdmin, avatar: 'https://picsum.photos/seed/user1/100/100', jobTitle: 'CEO', division: 'Executive' },
+    { id: 'user-2', name: 'Marcus Reyes', email: 'marcus@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user2/100/100', jobTitle: 'Sales Manager', division: 'Sales' },
+    { id: 'user-3', name: 'Chloe Dubois', email: 'chloe@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user3/100/100', jobTitle: 'Sales Associate', division: 'Sales' },
+    { id: 'user-4', name: 'Kenji Tanaka', email: 'kenji@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user4/100/100', jobTitle: 'Support Lead', division: 'Customer Support' },
 ];
 
 export const mockGoals: Goal[] = [

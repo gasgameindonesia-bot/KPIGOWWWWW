@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { FC, ReactNode } from 'react';
 
@@ -18,12 +17,12 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 transform transition-all"
+        className="bg-white dark:bg-dark-card rounded-lg shadow-xl w-full max-w-lg p-6 transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-dark-text">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-dark-text">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>

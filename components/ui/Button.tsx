@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { FC, ButtonHTMLAttributes, ReactNode } from 'react';
 
@@ -19,7 +18,7 @@ export const Button: FC<ButtonProps> = ({
 
   const variantStyles = {
     primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
-    outline: 'bg-transparent text-primary border border-primary hover:bg-primary/10',
+    outline: 'bg-transparent text-primary border border-primary hover:bg-primary/10 dark:text-primary-light dark:border-primary-light dark:hover:bg-primary-light/10',
     danger: 'bg-danger text-white hover:bg-red-700 focus:ring-danger',
   };
 

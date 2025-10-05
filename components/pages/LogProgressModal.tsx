@@ -68,19 +68,19 @@ export const LogProgressModal: FC<LogProgressModalProps> = ({ isOpen, onClose, k
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-                <label htmlFor="logMonth" className="block text-sm font-medium text-gray-700 mb-1">Month</label>
-                <select id="logMonth" value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white">
+                <label htmlFor="logMonth" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Month</label>
+                <select id="logMonth" value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text">
                     {months.map(m => <option key={m.value} value={m.value}>{m.name}</option>)}
                 </select>
             </div>
             <div>
-                <label htmlFor="logYear" className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <input type="number" id="logYear" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" />
+                <label htmlFor="logYear" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
+                <input type="number" id="logYear" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text" />
             </div>
         </div>
 
         <div className="mb-4">
-          <label htmlFor="logActual" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="logActual" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Actual Value ({kpi.unit})
           </label>
           <input
@@ -88,19 +88,19 @@ export const LogProgressModal: FC<LogProgressModalProps> = ({ isOpen, onClose, k
             id="logActual"
             value={actual}
             onChange={(e) => setActual(e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary ${error ? 'border-danger' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text ${error ? 'border-danger' : 'border-gray-300 dark:border-gray-600'}`}
             placeholder="e.g., 5000"
           />
         </div>
         
         <div className="mb-6">
-          <label htmlFor="logNotes" className="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+          <label htmlFor="logNotes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
           <textarea
             id="logNotes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text"
             placeholder="Add any relevant notes..."
           ></textarea>
         </div>

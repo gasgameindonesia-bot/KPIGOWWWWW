@@ -1,10 +1,11 @@
 import React from 'react';
 import type { FC } from 'react';
-import { NavigationItem } from '../../types';
+import { NavigationItem, UserRole, type User } from '../../types';
 
 interface SidebarProps {
   activePage: NavigationItem;
   onPageChange: (page: NavigationItem) => void;
+  currentUser?: User;
 }
 
 const NavLink: FC<{
@@ -18,7 +19,7 @@ const NavLink: FC<{
     className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 ${
       isActive
         ? 'bg-primary text-white shadow-md'
-        : 'text-gray-600 hover:bg-primary-light hover:text-white'
+        : 'text-gray-600 hover:bg-primary-light hover:text-white dark:text-gray-300 dark:hover:bg-primary-light/20'
     }`}
   >
     {React.cloneElement(icon, { className: 'h-6 w-6' })}
@@ -26,7 +27,7 @@ const NavLink: FC<{
   </li>
 );
 
-export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange }) => {
+export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUser }) => {
   const navItems = [
     {
       label: NavigationItem.Dashboard,
@@ -40,10 +41,14 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange }) => {
       label: NavigationItem.Team,
       icon: <TeamIcon />,
     },
+    {
+      label: NavigationItem.Settings,
+      icon: <SettingsIcon />,
+    },
   ];
 
   return (
-    <div className="w-64 bg-white h-full flex flex-col p-4 border-r border-gray-200 shadow-sm">
+    <div className="w-64 bg-white dark:bg-dark-card h-full flex flex-col p-4 border-r border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="flex items-center mb-10 px-2">
         <svg
           className="w-10 h-10 text-primary"
@@ -88,33 +93,41 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange }) => {
           ))}
         </ul>
       </nav>
-      <div className="mt-auto p-3 bg-gray-100 rounded-lg flex items-center">
-        <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center font-bold text-white">
-          ?
-        </div>
-        <div className="ml-3">
-            <p className="text-sm font-semibold">Help Center</p>
-            <p className="text-xs text-gray-500">Get support</p>
-        </div>
+      <div className="mt-auto">
+        {currentUser && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <img src={currentUser.avatar} alt="User Avatar" className="w-10 h-10 rounded-full object-cover" />
+                <div className="ml-3">
+                    <p className="text-sm font-semibold text-dark-text dark:text-dark-text">{currentUser.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{currentUser.role}</p>
+                </div>
+            </div>
+        )}
       </div>
     </div>
   );
 };
 
 // FIX: Update icon components to accept props. This resolves an error where React.cloneElement attempted to pass a `className` prop to components that did not accept any props.
-const DashboardIcon: FC<React.SVGProps<SVGSVGElement>> = (props) => (
+const DashboardIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
     </svg>
 );
-const KpiIcon: FC<React.SVGProps<SVGSVGElement>> = (props) => (
+const KpiIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
     </svg>
 );
-const TeamIcon: FC<React.SVGProps<SVGSVGElement>> = (props) => (
+const TeamIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 10a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+);
+const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
 );
