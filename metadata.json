@@ -1,0 +1,5 @@
+{
+  "name": "KPI GO",
+  "description": "A web application for tracking company Key Performance Indicators (KPIs). Super admins can manage goals and team members, while all users can log progress against their assigned KPIs on various schedules (daily, weekly, monthly, etc.).",
+  "requestFramePermissions": []
+}
