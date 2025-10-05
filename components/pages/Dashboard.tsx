@@ -42,7 +42,7 @@ const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
         <div className="flex justify-between items-baseline">
             <div>
                 <span className="text-sm text-light-text">Actual</span>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-2xl font-bold text-primary dark:text-white">
                     {kpi.unit}{currentValue.toLocaleString()}
                 </p>
             </div>
@@ -97,6 +97,28 @@ const ManagerCard: React.FC<{ achievement: ManagerAchievement }> = ({ achievemen
     </Card>
   );
 };
+
+const StatCardIcon: React.FC<{ icon: React.ElementType, color: string }> = ({ icon: Icon, color }) => (
+    <div className={`p-3 rounded-full ${color}`}>
+        <Icon className="h-6 w-6 text-white" />
+    </div>
+);
+
+const ChartBarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+);
+const CheckCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+const TrendingUpIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+);
 
 
 export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals, currentUser }) => {
@@ -188,20 +210,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals, curren
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-dark-text mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-dark-text mb-6">Welcome back, {currentUser?.name.split(' ')[0]}!</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
-            <h4 className="text-light-text font-medium">Total KPIs</h4>
-            <p className="text-4xl font-bold text-primary">{totalKpis}</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h4 className="text-light-text font-medium">Total KPIs</h4>
+                    <p className="text-4xl font-bold text-primary dark:text-white">{totalKpis}</p>
+                </div>
+                <StatCardIcon icon={ChartBarIcon} color="bg-primary/80" />
+            </div>
         </Card>
         <Card>
-            <h4 className="text-light-text font-medium">KPIs On Track (Current Month)</h4>
-            <p className="text-4xl font-bold text-accent">{onTrackKpis}</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h4 className="text-light-text font-medium">On Track (This Month)</h4>
+                    <p className="text-4xl font-bold text-accent">{onTrackKpis}</p>
+                </div>
+                 <StatCardIcon icon={CheckCircleIcon} color="bg-accent/80" />
+            </div>
         </Card>
         <Card>
-            <h4 className="text-light-text font-medium">Overall Progress (Current Month)</h4>
-            <p className="text-4xl font-bold text-secondary">{overallProgress.toFixed(0)}%</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h4 className="text-light-text font-medium">Overall Progress</h4>
+                    <p className="text-4xl font-bold text-secondary">{overallProgress.toFixed(0)}%</p>
+                </div>
+                <StatCardIcon icon={TrendingUpIcon} color="bg-secondary/80" />
+            </div>
         </Card>
       </div>
 

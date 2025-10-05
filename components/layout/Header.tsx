@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, notifications, 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="h-20 items-center relative z-10 bg-white dark:bg-dark-card border-b border-gray-200 dark:border-gray-700">
+    <header className="h-20 items-center relative z-10 bg-white/80 dark:bg-dark-card/70 backdrop-blur-lg border-b border-gray-200/80 dark:border-gray-700/60 shadow-sm">
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center space-x-4">
           <button 
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, notifications, 
                         <li 
                           key={notif.id} 
                           onClick={() => onMarkAsRead(notif.id)} 
-                          className={`border-b dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer ${!notif.read ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
+                          className={`border-b dark:border-gray-700/50 hover:bg-gray-500/10 cursor-pointer ${!notif.read ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                         >
                           <div className="flex items-start p-3">
                             {actor && <img src={actor.avatar} className="w-10 h-10 rounded-full mr-3 flex-shrink-0" alt={actor.name} />}

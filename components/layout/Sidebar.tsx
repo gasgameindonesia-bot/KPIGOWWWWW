@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { FC } from 'react';
 import { NavigationItem, UserRole, type User, type Company, type SubscriptionStatus } from '../../types';
@@ -21,12 +20,13 @@ const NavLink: FC<{
 }> = ({ icon: Icon, label, isActive, onClick }) => (
   <li
     onClick={onClick}
-    className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 ${
+    className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-all duration-200 relative ${
       isActive
-        ? 'bg-primary text-white shadow-md'
-        : 'text-gray-600 hover:bg-primary-light hover:text-white dark:text-gray-300 dark:hover:bg-primary-light/20'
+        ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-white font-semibold'
+        : 'text-light-text hover:bg-gray-500/10 dark:text-gray-300 dark:hover:bg-white/5'
     }`}
   >
+    {isActive && <div className="absolute left-0 h-3/5 w-1 bg-primary rounded-r-full"></div>}
     <Icon className="h-6 w-6" />
     <span className="ml-4 font-medium">{label}</span>
   </li>
@@ -92,7 +92,7 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUse
         aria-hidden="true"
       ></div>
 
-      <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-dark-card h-full flex flex-col p-4 border-r border-gray-200 dark:border-gray-700 shadow-sm z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 w-64 bg-white/80 dark:bg-dark-card/70 backdrop-blur-lg h-full flex flex-col p-4 border-r border-gray-200/80 dark:border-gray-700/60 shadow-lg z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center mb-10 px-2">
           <svg
             className="w-10 h-10 text-primary"
@@ -122,9 +122,9 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUse
               strokeLinejoin="round"
             />
           </svg>
-          <h1 className="text-2xl font-bold text-primary ml-2">KPI GO</h1>
+          <h1 className="text-2xl font-bold text-primary dark:text-white ml-2">KPI GO</h1>
         </div>
-        <nav>
+        <nav className="flex-grow">
           <ul>
             {visibleNavItems.map((item) => (
               <NavLink
@@ -140,11 +140,11 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUse
         <div className="mt-auto">
             {subscriptionStatus === 'trialing' && <TrialStatus company={company} />}
             {currentUser && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div className="p-3 bg-gray-500/10 rounded-lg flex items-center">
                   <img src={currentUser.avatar} alt="User Avatar" className="w-10 h-10 rounded-full object-cover" />
                   <div className="ml-3">
-                      <p className="text-sm font-semibold text-dark-text dark:text-dark-text">{currentUser.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{currentUser.role}</p>
+                      <p className="text-sm font-semibold text-gray-800 dark:text-dark-text">{currentUser.name}</p>
+                      <p className="text-xs text-light-text dark:text-gray-400">{currentUser.role}</p>
                   </div>
               </div>
           )}

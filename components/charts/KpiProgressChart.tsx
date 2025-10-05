@@ -33,22 +33,22 @@ export const KpiProgressChart: React.FC<KpiProgressChartProps> = ({ progress, un
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--tw-prose-invert-borders, #4a5568)" />
-          <XAxis dataKey="name" stroke="var(--tw-prose-invert-body, #a0aec0)" />
-          <YAxis stroke="var(--tw-prose-invert-body, #a0aec0)" tickFormatter={(value) => `${unit}${value / 1000}k`} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(100, 116, 139, 0.3)" />
+          <XAxis dataKey="name" stroke="#64748b" />
+          <YAxis stroke="#64748b" tickFormatter={(value) => `${unit}${value / 1000}k`} />
           <Tooltip 
             formatter={(value: number) => [value.toLocaleString(), '']}
             contentStyle={{
-                backgroundColor: 'rgba(45, 55, 72, 0.8)',
-                border: '1px solid #718096',
+                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                border: '1px solid #334155',
                 borderRadius: '8px',
             }}
-            labelStyle={{ color: '#E2E8F0' }}
-            itemStyle={{ color: '#E2E8F0' }}
+            labelStyle={{ color: '#f1f5f9' }}
+            itemStyle={{ color: '#f1f5f9' }}
           />
-          <Legend wrapperStyle={{color: "var(--tw-prose-invert-body, #a0aec0)"}} />
-          <Line type="monotone" dataKey="Actual" stroke="#5472d3" strokeWidth={3} activeDot={{ r: 8 }} />
-          <Line type="monotone" dataKey="Target" stroke="#FFC107" strokeWidth={2} strokeDasharray="5 5" />
+          <Legend wrapperStyle={{color: "#64748b"}} />
+          <Line type="monotone" dataKey="Actual" stroke="#4f46e5" strokeWidth={3} activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="Target" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -25,7 +25,7 @@ export const KpiItem: React.FC<KpiItemProps> = ({ kpi, user, currentUser, goalMa
   const canEdit = currentUser?.role === UserRole.Admin || currentUser?.id === goalManagerId || currentUser?.id === kpi.ownerId;
   
   return (
-    <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 hover:shadow-md transition-shadow">
+    <div className="bg-light-bg/50 dark:bg-dark-bg/50 p-4 rounded-lg border border-gray-200/80 dark:border-gray-700/80 mb-3 last:mb-0 hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
             <div>
                 <div className="flex items-center flex-wrap gap-2">

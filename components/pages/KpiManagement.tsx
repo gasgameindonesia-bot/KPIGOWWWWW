@@ -302,7 +302,6 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
             handleCloseEditGoalModal();
         }}
         users={users}
-        currentUser={currentUser}
       />
 
       <EditKpiModal
@@ -317,7 +316,6 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
         }}
         users={users}
         kpis={kpis}
-        currentUser={currentUser}
       />
 
       <LogProgressModal
