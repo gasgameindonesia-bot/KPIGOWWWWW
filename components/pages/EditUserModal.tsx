@@ -18,7 +18,7 @@ export const EditUserModal: FC<EditUserModalProps> = ({ isOpen, onClose, user, o
     email: '',
     jobTitle: '',
     division: '',
-    role: UserRole.TeamMember,
+    role: UserRole.Staff,
   });
 
   useEffect(() => {
@@ -114,8 +114,8 @@ export const EditUserModal: FC<EditUserModalProps> = ({ isOpen, onClose, user, o
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary bg-white dark:bg-dark-bg text-gray-800 dark:text-dark-text"
             >
-              <option>{UserRole.TeamMember}</option>
-              <option>{UserRole.SuperAdmin}</option>
+              <option value={UserRole.Manager}>{UserRole.Manager}</option>
+              <option value={UserRole.Staff}>{UserRole.Staff}</option>
             </select>
           </div>
         <div className="flex justify-end space-x-3">

@@ -7,6 +7,7 @@ import { KpiManagement } from './components/pages/KpiManagement';
 import { Team } from './components/pages/Team';
 import { Settings } from './components/pages/Settings';
 import type { User, Goal, KPI, Notification } from './types';
+import { UserRole } from './types';
 import { mockUsers, mockGoals, mockKpis } from './data/mockData';
 import { NavigationItem } from './types';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
@@ -28,12 +29,73 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [goals, setGoals] = useState<Goal[]>(mockGoals);
-  const [kpis, setKpis] = useState<KPI[]>(mockKpis);
+  const [users, setUsers] = useState<User[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [kpis, setKpis] = useState<KPI[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   
+  useEffect(() => {
+    if (user) {
+      const isMockUser = mockUsers.some(mockUser => mockUser.email === user.email);
+      if (isMockUser) {
+        // This is a demo user, load mock data
+        setUsers(mockUsers);
+        setGoals(mockGoals);
+        setKpis(mockKpis);
+      } else {
+        // This is a new user, start with a clean slate
+        setUsers([user]);
+        setGoals([]);
+        setKpis([]);
+      }
+    } else {
+      // User is logged out, clear all data
+      setUsers([]);
+      setGoals([]);
+      setKpis([]);
+      setNotifications([]);
+    }
+  }, [user]);
+
   const currentUser = useMemo(() => user ? users.find(u => u.id === user.id) : undefined, [user, users]);
+
+  const { visibleGoals, visibleKpis } = useMemo(() => {
+    if (!currentUser) {
+      return { visibleGoals: [], visibleKpis: [] };
+    }
+    if (currentUser.role === UserRole.Admin) {
+      return { visibleGoals: goals, visibleKpis: kpis };
+    }
+    
+    const userGoalIds = new Set<string>();
+    
+    const filteredGoals = goals.filter(goal => {
+      const isManager = goal.managerId === currentUser.id;
+      const isStaff = goal.staffIds.includes(currentUser.id);
+      if (isManager || isStaff) {
+        userGoalIds.add(goal.id);
+        return true;
+      }
+      return false;
+    });
+
+    const filteredKpis = kpis.filter(kpi => 
+      userGoalIds.has(kpi.goalId) || kpi.ownerId === currentUser.id
+    );
+
+    // Also add goals for any KPIs the user owns, even if they aren't manager/staff
+     filteredKpis.forEach(kpi => {
+        if (!userGoalIds.has(kpi.goalId)) {
+            const relatedGoal = goals.find(g => g.id === kpi.goalId);
+            if (relatedGoal && !filteredGoals.some(fg => fg.id === relatedGoal.id)) {
+                filteredGoals.push(relatedGoal);
+                userGoalIds.add(relatedGoal.id);
+            }
+        }
+    });
+
+    return { visibleGoals: filteredGoals, visibleKpis: filteredKpis };
+  }, [currentUser, goals, kpis]);
 
   useEffect(() => {
     window.location.hash = `/${activePage}`;
@@ -73,16 +135,16 @@ const App: React.FC = () => {
   const handleAddNewKpi = (newKpi: KPI) => {
     setKpis(prev => [...prev, newKpi]);
     const goal = goals.find(g => g.id === newKpi.goalId);
-    if (goal) {
-        addNotification(`added a new KPI: "${newKpi.title}" to goal "${goal.title}"`, goal.managerId);
+    if (goal && currentUser) {
+        addNotification(`added a new KPI: "${newKpi.title}" to goal "${goal.title}"`, currentUser.id);
     }
   };
 
   const handleUpdateKpi = (updatedKpi: KPI, actorId?: string) => {
       setKpis(prevKpis => prevKpis.map(k => k.id === updatedKpi.id ? updatedKpi : k));
       const goal = goals.find(g => g.id === updatedKpi.goalId);
-      if (goal) {
-          const effectiveActorId = actorId || goal.managerId;
+       if (goal && currentUser) {
+          const effectiveActorId = actorId || currentUser.id;
           addNotification(`updated the KPI: "${updatedKpi.title}"`, effectiveActorId);
       }
   };
@@ -100,17 +162,18 @@ const App: React.FC = () => {
 
           if (monthIndex > -1) {
             newProgress[monthIndex] = { ...newProgress[monthIndex], actual: logData.actual, notes: logData.notes };
+          } else {
+            // This case might be needed if a month's progress doesn't exist yet
           }
           return { ...kpi, monthlyProgress: newProgress };
         }
         return kpi;
       })
     );
-    const goal = goals.find(g => g.id === goalId);
-    if (goal) {
-      addNotification(`logged progress for KPI: "${kpiTitle}"`, goal.managerId);
+    if (currentUser) {
+      addNotification(`logged progress for KPI: "${kpiTitle}"`, currentUser.id);
     }
-  }, [goals, addNotification]);
+  }, [currentUser, addNotification]);
   
   const handleMarkAsRead = useCallback((id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -124,29 +187,41 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (activePage) {
       case NavigationItem.Dashboard:
-        return <Dashboard kpis={kpis} users={users} goals={goals} />;
+        return <Dashboard kpis={visibleKpis} users={users} goals={visibleGoals} currentUser={currentUser} />;
       case NavigationItem.KPIs:
         return <KpiManagement 
-                    goals={goals} 
-                    kpis={kpis} 
+                    goals={visibleGoals} 
+                    kpis={visibleKpis} 
                     users={users} 
+                    currentUser={currentUser}
                     onAddNewGoal={handleAddNewGoal}
                     onUpdateGoal={handleUpdateGoal}
                     onAddNewKpi={handleAddNewKpi}
                     onUpdateKpi={handleUpdateKpi}
                     onLogProgress={handleLogProgress} />;
       case NavigationItem.Team:
-        return <Team users={users} setUsers={setUsers} />;
+        return <Team users={users} setUsers={setUsers} currentUser={currentUser} />;
       case NavigationItem.Settings:
-        return <Settings currentUser={currentUser} setUsers={setUsers} theme={theme} setTheme={setTheme} kpis={kpis} onUpdateKpi={handleUpdateKpi} />;
+        return <Settings 
+                    currentUser={currentUser} 
+                    setUsers={setUsers} 
+                    theme={theme} 
+                    setTheme={setTheme} 
+                    kpis={kpis} 
+                    onUpdateKpi={handleUpdateKpi}
+                    company={company}
+                    subscriptionStatus={subscriptionStatus}
+                    onNavigate={handlePageChange}
+                />;
       case NavigationItem.Pricing:
         return <PricingPage />;
       default:
-        return <Dashboard kpis={kpis} users={users} goals={goals} />;
+        return <Dashboard kpis={visibleKpis} users={users} goals={visibleGoals} currentUser={currentUser} />;
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    if (currentUser?.role !== UserRole.Admin) return;
     const {active, over} = event;
     if (over && active.id !== over.id) {
       const oldIndex = goals.findIndex(item => item.id === active.id);
@@ -163,7 +238,16 @@ const App: React.FC = () => {
   return (
     <div className={`${theme}`}>
         <div className="flex h-screen bg-light-bg dark:bg-dark-bg">
-        <Sidebar activePage={activePage} onPageChange={handlePageChange} currentUser={currentUser} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        <Sidebar 
+          activePage={activePage} 
+// Fix: Corrected typo from `handlePagechange` to `handlePageChange`.
+          onPageChange={handlePageChange} 
+          currentUser={currentUser} 
+          isOpen={isSidebarOpen} 
+          setIsOpen={setIsSidebarOpen} 
+          company={company}
+          subscriptionStatus={subscriptionStatus}
+        />
         <div className="flex-1 flex flex-col overflow-hidden">
             <Header 
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
@@ -177,7 +261,7 @@ const App: React.FC = () => {
             {subscriptionStatus === 'expired' && <Paywall onUpgrade={() => setActivePage(NavigationItem.Pricing)} />}
             <div className={subscriptionStatus === 'expired' ? 'blur-sm pointer-events-none' : ''}>
               <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={goals} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={visibleGoals} strategy={verticalListSortingStrategy}>
                   {renderPage()}
                   </SortableContext>
               </DndContext>

@@ -1,194 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import type { Goal, KPI, User, MonthlyProgress } from '../../types';
-import { KpiFrequency } from '../../types';
-import { Card } from '../ui/Card';
+import { KpiFrequency, UserRole } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
-import { ProgressBar } from '../ui/ProgressBar';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { EditGoalModal } from './EditGoalModal';
 import { EditKpiModal } from './EditKpiModal';
 import { LogProgressModal } from './LogProgressModal';
-import { KpiStatusBadge } from '../ui/KpiStatusBadge';
+import { SortableGoalItem } from '../kpi/SortableGoalItem';
 
 interface KpiManagementProps {
   goals: Goal[];
   kpis: KPI[];
   users: User[];
+  currentUser?: User;
   onAddNewGoal: (goal: Goal) => void;
-  onUpdateGoal: (goal: Goal) => void;
+  onUpdateGoal: (goal: Goal, actorId?: string) => void;
   onAddNewKpi: (kpi: KPI) => void;
-  onUpdateKpi: (kpi: KPI) => void;
+  onUpdateKpi: (kpi: KPI, actorId?: string) => void;
   onLogProgress: (logData: { kpiId: string; year: number; month: number; actual: number; notes?: string }) => void;
 }
 
-const KpiItem: React.FC<{ kpi: KPI; user?: User; onEdit: (kpi: KPI) => void; onLogProgress: (kpi: KPI) => void; }> = ({ kpi, user, onEdit, onLogProgress }) => {
-  const now = new Date();
-  const currentMonthData = kpi.monthlyProgress.find(p => p.year === now.getFullYear() && p.month === now.getMonth() + 1);
-  
-  const currentValue = currentMonthData?.actual ?? 0;
-  const targetValue = currentMonthData?.target ?? 0;
-  const progress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
-  
-  return (
-    <div className="bg-white dark:bg-dark-bg p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-3 hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start">
-            <div>
-                <div className="flex items-center flex-wrap gap-2">
-                    <h4 className="font-semibold text-gray-800 dark:text-dark-text">{kpi.title}</h4>
-                    <KpiStatusBadge actual={currentValue} target={targetValue} />
-                    {kpi.weight && (
-                        <span className="text-xs font-semibold bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200 px-2 py-0.5 rounded-full">
-                            Weight: {kpi.weight}%
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {user && <img src={user.avatar} className="w-6 h-6 rounded-full mr-2" alt={user.name} />}
-                <span>{user ? user.name : 'Unassigned'}</span>
-                </div>
-            </div>
-            <div className="hidden sm:flex items-center space-x-2 flex-shrink-0 ml-4">
-                <Button variant="outline" size="sm" onClick={() => onLogProgress(kpi)}>Log</Button>
-                <Button variant="outline" size="sm" onClick={() => onEdit(kpi)}>Edit</Button>
-            </div>
-        </div>
-        <div className="mt-4">
-            <div className="flex justify-between text-sm mb-1">
-                <div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Actual</span>
-                    <p className="font-semibold text-gray-800 dark:text-dark-text">
-                        {kpi.unit}{currentValue.toLocaleString()}
-                    </p>
-                </div>
-                <div className="text-right">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Target</span>
-                    <p className="font-semibold text-gray-600 dark:text-gray-300">
-                        {kpi.unit}{targetValue.toLocaleString()}
-                    </p>
-                </div>
-            </div>
-            <ProgressBar progress={progress} customColor={kpi.progressBarColor} />
-        </div>
-        <div className="sm:hidden flex space-x-2 mt-4">
-            <Button variant="outline" size="sm" className="w-full" onClick={() => onLogProgress(kpi)}>Log Progress</Button>
-            <Button variant="outline" size="sm" className="w-full" onClick={() => onEdit(kpi)}>Edit</Button>
-        </div>
-    </div>
-  );
-};
-
-const SortableGoalItem: React.FC<{ goal: Goal; kpis: KPI[]; users: User[]; onEditGoal: (goal: Goal) => void; onAddKpi: (goalId: string) => void; onEditKpi: (kpi: KPI) => void; onLogKpiProgress: (kpi: KPI) => void; }> = ({ goal, kpis, users, onEditGoal, onAddKpi, onEditKpi, onLogKpiProgress }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({id: goal.id});
-  
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-  
-  const manager = users.find(u => u.id === goal.managerId);
-  const staff = users.filter(u => goal.staffIds.includes(u.id));
-
-  const goalProgress = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-
-    const totalWeight = kpis.reduce((sum, kpi) => sum + (kpi.weight || 0), 0);
-    if (totalWeight === 0) return 0;
-
-    const weightedProgressSum = kpis.reduce((sum, kpi) => {
-        const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
-        const currentValue = monthData?.actual ?? 0;
-        const targetValue = monthData?.target ?? 0;
-        const kpiProgress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
-        const kpiWeight = kpi.weight || 0;
-        
-        return sum + (kpiProgress * kpiWeight);
-    }, 0);
-
-    return weightedProgressSum / totalWeight;
-  }, [kpis]);
-
-
-  return (
-    <div ref={setNodeRef} style={style}>
-        <Card className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4">
-                <div className="flex items-center flex-grow">
-                    {/* Drag Handle */}
-                    <div {...attributes} {...listeners} className="p-2 cursor-grab touch-none text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded-md" aria-label="Drag handle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="9" cy="6" r="1.5" fill="currentColor"/>
-                            <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
-                            <circle cx="9" cy="18" r="1.5" fill="currentColor"/>
-                            <circle cx="15" cy="6" r="1.5" fill="currentColor"/>
-                            <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
-                            <circle cx="15" cy="18" r="1.5" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div className="ml-2 flex-grow">
-                        <h3 className="text-xl font-bold text-primary">{goal.title}</h3>
-                        <p className="text-gray-600 dark:text-gray-300 mt-1">{goal.description}</p>
-                    </div>
-                </div>
-                <div className="flex-shrink-0 flex space-x-2 mt-4 sm:mt-0 self-end sm:self-auto">
-                  <Button variant="outline" size="sm" onClick={() => onEditGoal(goal)}>Edit Goal</Button>
-                  <Button variant="primary" size="sm" onClick={() => onAddKpi(goal.id)}>Add KPI</Button>
-                </div>
-            </div>
-            <div className="my-4">
-                <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Overall Goal Progress (Current Month)</span>
-                    <span className="font-bold text-primary">{goalProgress.toFixed(0)}%</span>
-                </div>
-                <ProgressBar progress={goalProgress} />
-            </div>
-             { (manager || staff.length > 0) && (
-                <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">Team In-Charge</h4>
-                    <div className="flex items-center space-x-6">
-                        {manager && (
-                            <div>
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Manager</p>
-                                <div className="flex items-center">
-                                    <img src={manager.avatar} className="w-8 h-8 rounded-full" alt={manager.name} title={manager.name} />
-                                    <span className="ml-2 text-sm font-medium text-gray-800 dark:text-dark-text">{manager.name}</span>
-                                </div>
-                            </div>
-                        )}
-                        {staff.length > 0 && (
-                            <div>
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Staff</p>
-                                <div className="flex items-center -space-x-2">
-                                    {staff.map(member => (
-                                        <img key={member.id} src={member.avatar} className="w-8 h-8 rounded-full border-2 border-white dark:border-dark-card" alt={member.name} title={member.name} />
-                                    ))}
-                                    {staff.length > 4 && <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-semibold z-10 border-2 border-white dark:border-dark-card dark:bg-gray-600 dark:text-dark-text">+{staff.length - 4}</span>}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                {kpis.map((kpi) => (
-                <KpiItem key={kpi.id} kpi={kpi} user={users.find(u => u.id === kpi.ownerId)} onEdit={onEditKpi} onLogProgress={onLogKpiProgress}/>
-                ))}
-            </div>
-        </Card>
-    </div>
-  );
-};
-
-export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users, onAddNewGoal, onUpdateGoal, onAddNewKpi, onUpdateKpi, onLogProgress }) => {
+export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users, currentUser, onAddNewGoal, onUpdateGoal, onAddNewKpi, onUpdateKpi, onLogProgress }) => {
   const [isAddGoalModalOpen, setIsAddGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [editingKpi, setEditingKpi] = useState<KPI | null>(null);
@@ -391,7 +223,9 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-dark-text">Goals & KPIs</h1>
-        <Button onClick={() => setIsAddGoalModalOpen(true)}>Add New Goal</Button>
+        {currentUser?.role === UserRole.Admin && (
+            <Button onClick={() => setIsAddGoalModalOpen(true)}>Add New Goal</Button>
+        )}
       </div>
       
       <div>
@@ -401,6 +235,7 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
                 goal={goal} 
                 kpis={kpis.filter(k => k.goalId === goal.id)} 
                 users={users}
+                currentUser={currentUser}
                 onEditGoal={handleOpenEditGoalModal}
                 onAddKpi={handleOpenAddKpiModal}
                 onEditKpi={handleOpenEditKpiModal}
@@ -460,17 +295,29 @@ export const KpiManagement: React.FC<KpiManagementProps> = ({ goals, kpis, users
         isOpen={!!editingGoal}
         onClose={handleCloseEditGoalModal}
         goal={editingGoal}
-        onUpdateGoal={onUpdateGoal}
+// Fix: Corrected the function signature for onUpdateGoal to match the prop type of EditGoalModal.
+// The lambda now accepts a single `goal` argument and passes the `currentUser.id` as the actorId.
+        onUpdateGoal={(goal) => {
+            onUpdateGoal(goal, currentUser?.id);
+            handleCloseEditGoalModal();
+        }}
         users={users}
+        currentUser={currentUser}
       />
 
       <EditKpiModal
         isOpen={!!editingKpi}
         onClose={handleCloseEditKpiModal}
         kpi={editingKpi}
-        onUpdateKpi={onUpdateKpi}
+// Fix: Corrected the function signature for onUpdateKpi to match the prop type of EditKpiModal.
+// The lambda now accepts a single `kpi` argument and passes the `currentUser.id` as the actorId.
+        onUpdateKpi={(kpi) => {
+            onUpdateKpi(kpi, currentUser?.id);
+            handleCloseEditKpiModal();
+        }}
         users={users}
         kpis={kpis}
+        currentUser={currentUser}
       />
 
       <LogProgressModal

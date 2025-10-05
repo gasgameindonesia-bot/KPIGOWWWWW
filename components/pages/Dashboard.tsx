@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { KPI, User, Goal } from '../../types';
+import { UserRole } from '../../types';
 import { Card } from '../ui/Card';
 import { KpiProgressChart } from '../charts/KpiProgressChart';
 import { ProgressBar } from '../ui/ProgressBar';
@@ -9,6 +10,7 @@ interface DashboardProps {
   kpis: KPI[];
   users: User[];
   goals: Goal[];
+  currentUser?: User;
 }
 
 const KpiCard: React.FC<{ kpi: KPI, user?: User }> = ({ kpi, user }) => {
@@ -97,7 +99,7 @@ const ManagerCard: React.FC<{ achievement: ManagerAchievement }> = ({ achievemen
 };
 
 
-export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals, currentUser }) => {
     const totalKpis = kpis.length;
     const { onTrackKpis, overallProgress } = useMemo(() => {
         const now = new Date();
@@ -127,7 +129,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
     }, [kpis]);
     
     const managerAchievements = useMemo(() => {
-        const managerIds = [...new Set(goals.map(goal => goal.managerId))];
+        let managerIds = [...new Set(goals.map(goal => goal.managerId))];
+
+        // If user is not an Admin, only show their own manager card (if they are a manager)
+        if (currentUser && currentUser.role !== UserRole.Admin) {
+            managerIds = managerIds.filter(id => id === currentUser.id);
+        }
 
         return managerIds.map(managerId => {
             const manager = users.find(u => u.id === managerId);
@@ -156,7 +163,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
                 const monthData = kpi.monthlyProgress.find(p => p.year === currentYear && p.month === currentMonth);
                 const kpiWeight = kpi.weight || 0;
 
-                // Only consider KPIs with weight for the average calculation
                 if (monthData && kpiWeight > 0) {
                     const currentValue = monthData.actual ?? 0;
                     const targetValue = monthData.target ?? 0;
@@ -176,7 +182,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ kpis, users, goals }) => {
                 averageProgress,
             };
         }).filter((a): a is ManagerAchievement => a !== null);
-    }, [goals, kpis, users]);
+    }, [goals, kpis, users, currentUser]);
 
     const mainKpi = kpis.find(k => k.id === 'kpi-1');
 

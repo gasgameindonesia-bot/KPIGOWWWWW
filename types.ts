@@ -8,7 +8,9 @@ export enum NavigationItem {
 
 export enum UserRole {
     SuperAdmin = 'Super Admin',
-    TeamMember = 'Team Member',
+    Admin = 'Admin',
+    Manager = 'Manager',
+    Staff = 'Staff',
 }
 
 export type SubscriptionStatus = 'trialing' | 'active' | 'expired' | 'canceled';

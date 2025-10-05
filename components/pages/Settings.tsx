@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import type { User, KPI } from '../../types';
+import type { User, KPI, Company, SubscriptionStatus } from '../../types';
+import { NavigationItem, UserRole } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ToggleSwitch } from '../ui/ToggleSwitch';
@@ -11,9 +13,12 @@ interface SettingsProps {
     setTheme: (theme: 'light' | 'dark') => void;
     kpis: KPI[];
     onUpdateKpi: (kpi: KPI, actorId?: string) => void;
+    company: Company | null;
+    subscriptionStatus: SubscriptionStatus | null;
+    onNavigate: (page: NavigationItem) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme, kpis, onUpdateKpi }) => {
+export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme, setTheme, kpis, onUpdateKpi, company, subscriptionStatus, onNavigate }) => {
     const [profileData, setProfileData] = useState({ 
         name: '', 
         email: '', 
@@ -67,6 +72,25 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
         }
     };
     
+    const getPlanName = () => {
+        switch (subscriptionStatus) {
+            case 'trialing': return 'Free Trial';
+            case 'active': return 'Premium Plan';
+            case 'expired': return 'Trial Expired';
+            case 'canceled': return 'Canceled';
+            default: return 'N/A';
+        }
+    };
+    
+    const getDaysRemaining = () => {
+        if (!company?.trialEndsAt || subscriptionStatus !== 'trialing') return 0;
+        const trialEndDate = new Date(company.trialEndsAt);
+        const now = new Date();
+        const diffTime = trialEndDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(0, diffDays);
+    };
+
     if (!currentUser) {
         return <p>Loading...</p>;
     }
@@ -163,7 +187,41 @@ export const Settings: React.FC<SettingsProps> = ({ currentUser, setUsers, theme
             </Card>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
+             {/* Billing & Subscription */}
+             {currentUser.role === UserRole.Admin && (
+                <Card>
+                    <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">Billing & Subscription</h2>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+                                <p className="font-semibold text-lg text-gray-800 dark:text-dark-text">{getPlanName()}</p>
+                            </div>
+                            {subscriptionStatus === 'trialing' && (
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Days Remaining</p>
+                                    <p className="font-semibold text-lg text-accent">{getDaysRemaining()}</p>
+                                </div>
+                            )}
+                        </div>
+                        {subscriptionStatus !== 'active' && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {subscriptionStatus === 'trialing' 
+                                    ? 'Your trial includes unlimited access to all features.' 
+                                    : 'Your trial has expired. Please upgrade to continue.'}
+                            </p>
+                        )}
+                        <Button 
+                            onClick={() => onNavigate(NavigationItem.Pricing)} 
+                            variant={subscriptionStatus === 'expired' ? 'danger' : 'primary'}
+                            className="w-full"
+                        >
+                            {subscriptionStatus === 'active' ? 'Manage Subscription' : 'Upgrade Plan'}
+                        </Button>
+                    </div>
+                </Card>
+             )}
              {/* Appearance Settings */}
              <Card>
                 <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-dark-text">Appearance</h2>

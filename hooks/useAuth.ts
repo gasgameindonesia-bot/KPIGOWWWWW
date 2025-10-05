@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { User, Company, SubscriptionStatus, UserRole } from '../types';
-import { UserRole as UserRoleEnum } from '../types';
+import type { User, Company, SubscriptionStatus } from '../types';
+import { UserRole } from '../types';
 import { mockUsers } from '../data/mockData';
 
 const MOCK_USER_STORAGE_KEY = 'kpi_go_user';
@@ -89,7 +89,7 @@ export const useAuth = () => {
             name,
             email,
             avatar: `https://picsum.photos/seed/${ownerId}/100/100`,
-            role: UserRoleEnum.SuperAdmin,
+            role: UserRole.Admin,
             jobTitle: 'Founder',
             division: 'Executive',
             companyId: companyId,

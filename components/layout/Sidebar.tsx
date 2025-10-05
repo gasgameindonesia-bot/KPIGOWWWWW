@@ -1,6 +1,7 @@
+
 import React from 'react';
 import type { FC } from 'react';
-import { NavigationItem, UserRole, type User } from '../../types';
+import { NavigationItem, UserRole, type User, type Company, type SubscriptionStatus } from '../../types';
 
 interface SidebarProps {
   activePage: NavigationItem;
@@ -8,10 +9,10 @@ interface SidebarProps {
   currentUser?: User;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  company: Company | null;
+  subscriptionStatus: SubscriptionStatus | null;
 }
 
-// Fix: Refactored NavLink to accept an icon component directly, avoiding React.cloneElement.
-// This resolves a TypeScript type inference issue and simplifies passing props to the icon.
 const NavLink: FC<{
   icon: React.ElementType;
   label: NavigationItem;
@@ -31,25 +32,54 @@ const NavLink: FC<{
   </li>
 );
 
-export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUser, isOpen, setIsOpen }) => {
+const TrialStatus: FC<{ company: Company | null }> = ({ company }) => {
+    if (!company?.trialEndsAt) return null;
+
+    const trialEndDate = new Date(company.trialEndsAt);
+    const now = new Date();
+    
+    if (now > trialEndDate) return null;
+
+    const diffTime = trialEndDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const isEndingSoon = diffDays <= 3;
+
+    return (
+        <div className={`p-3 rounded-lg text-center mb-4 ${isEndingSoon ? 'bg-danger/10 animate-pulse' : 'bg-primary/10'}`}>
+            <p className={`font-semibold ${isEndingSoon ? 'text-danger' : 'text-primary'}`}>
+                {diffDays} Day{diffDays !== 1 ? 's' : ''} Left
+            </p>
+            <p className={`text-xs ${isEndingSoon ? 'text-danger/80' : 'text-primary/80'}`}>in your trial</p>
+        </div>
+    );
+};
+
+export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUser, isOpen, setIsOpen, company, subscriptionStatus }) => {
   const navItems = [
     {
       label: NavigationItem.Dashboard,
       icon: DashboardIcon,
+      roles: [UserRole.Admin, UserRole.Manager, UserRole.Staff],
     },
     {
       label: NavigationItem.KPIs,
       icon: KpiIcon,
+      roles: [UserRole.Admin, UserRole.Manager, UserRole.Staff],
     },
     {
       label: NavigationItem.Team,
       icon: TeamIcon,
+      roles: [UserRole.Admin],
     },
     {
       label: NavigationItem.Settings,
       icon: SettingsIcon,
+      roles: [UserRole.Admin, UserRole.Manager, UserRole.Staff],
     },
   ];
+
+  const visibleNavItems = navItems.filter(item => currentUser && item.roles.includes(currentUser.role));
 
   return (
     <>
@@ -96,7 +126,7 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUse
         </div>
         <nav>
           <ul>
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink
                 key={item.label}
                 icon={item.icon}
@@ -108,7 +138,8 @@ export const Sidebar: FC<SidebarProps> = ({ activePage, onPageChange, currentUse
           </ul>
         </nav>
         <div className="mt-auto">
-          {currentUser && (
+            {subscriptionStatus === 'trialing' && <TrialStatus company={company} />}
+            {currentUser && (
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <img src={currentUser.avatar} alt="User Avatar" className="w-10 h-10 rounded-full object-cover" />
                   <div className="ml-3">

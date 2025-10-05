@@ -1,12 +1,11 @@
 import type { User, Goal, KPI, MonthlyProgress } from '../types';
 import { UserRole, KpiFrequency } from '../types';
 
-// Fix: Added the missing `companyId` property to each mock user object to satisfy the `User` type.
 export const mockUsers: User[] = [
-    { id: 'user-1', name: 'Eleanor Vance', email: 'eleanor@kpi-go.com', role: UserRole.SuperAdmin, avatar: 'https://picsum.photos/seed/user1/100/100', jobTitle: 'CEO', division: 'Executive', companyId: 'comp-1' },
-    { id: 'user-2', name: 'Marcus Reyes', email: 'marcus@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user2/100/100', jobTitle: 'Sales Manager', division: 'Sales', companyId: 'comp-1' },
-    { id: 'user-3', name: 'Chloe Dubois', email: 'chloe@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user3/100/100', jobTitle: 'Sales Associate', division: 'Sales', companyId: 'comp-1' },
-    { id: 'user-4', name: 'Kenji Tanaka', email: 'kenji@kpi-go.com', role: UserRole.TeamMember, avatar: 'https://picsum.photos/seed/user4/100/100', jobTitle: 'Support Lead', division: 'Customer Support', companyId: 'comp-1' },
+    { id: 'user-1', name: 'Eleanor Vance', email: 'eleanor@kpi-go.com', role: UserRole.Admin, avatar: 'https://picsum.photos/seed/user1/100/100', jobTitle: 'CEO', division: 'Executive', companyId: 'comp-1' },
+    { id: 'user-2', name: 'Marcus Reyes', email: 'marcus@kpi-go.com', role: UserRole.Manager, avatar: 'https://picsum.photos/seed/user2/100/100', jobTitle: 'Sales Manager', division: 'Sales', companyId: 'comp-1' },
+    { id: 'user-3', name: 'Chloe Dubois', email: 'chloe@kpi-go.com', role: UserRole.Staff, avatar: 'https://picsum.photos/seed/user3/100/100', jobTitle: 'Sales Associate', division: 'Sales', companyId: 'comp-1' },
+    { id: 'user-4', name: 'Kenji Tanaka', email: 'kenji@kpi-go.com', role: UserRole.Staff, avatar: 'https://picsum.photos/seed/user4/100/100', jobTitle: 'Support Lead', division: 'Customer Support', companyId: 'comp-1' },
 ];
 
 export const mockGoals: Goal[] = [
